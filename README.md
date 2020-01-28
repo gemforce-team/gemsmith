@@ -1,2 +1,2 @@
 # Gemsmith
-A game modification that automatically performs complex gem combinations
+A GCFW modification that automatically performs complex gem combinations ingame.
