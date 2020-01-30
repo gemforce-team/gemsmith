@@ -1,0 +1,16 @@
+27.01.2020 v1.0
+	Initial release!
+	
+27.01.2020 v1.1
+	Added PageUp, PageDown, Home as alternative hotkeys.
+	
+28.01.2020 v1.2
+	Updated to 1.0.16
+	Added a configuration file and the ability to rebind all your hotkeys, including base game's! Details in README
+	Moved all files to %AppData%\Roaming\com.giab.games.gcfw.steam\Local Store\FWGC
+	Implemented very rudimentary logging, log file is located in the folder above
+	Filenames are now shown without the .txt extension when cycling through recipes
+	
+30.01.2020 v1.3
+	Updated to 1.0.17
+	The mod's name is "Gemsmith" from now on!
