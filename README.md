@@ -10,6 +10,16 @@ Gemsmith allows you to skip performing these operations manually, instead it per
 This is merely a time saving and QOL mod, exactly the same results can be achieved without it, albeit much slower and with more effort. Mana expenditure stats and achievements should be tracked appropriately, [submit an issue](https://github.com/gemforce-team/gemsmith/issues) if you find that something's off!
 
 
+## Releases
+[Link to the latest release](https://github.com/gemforce-team/gemsmith/releases/latest)
+
+Release history: [Releases](https://github.com/gemforce-team/gemsmith/releases)
+
+
+## Changelog
+https://github.com/gemforce-team/gemsmith/blob/master/Changelog.txt
+
+
 ## Features
 * A combine can be performed on a gem anywhere: in your inventory, in towers, lanterns, traps, amplifiers and in the enrage slot.
 
