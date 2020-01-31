@@ -15,5 +15,5 @@
 	Updated to 1.0.17
 	The mod's name is "Gemsmith" from now on!	
 	
-31.01.2020 v1.3 for 1.0.18
-	Updated to 1.0.18
+31.01.2020 v1.3 for 1.0.18a
+	Updated to 1.0.18a
