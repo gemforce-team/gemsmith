@@ -27,6 +27,8 @@ https://github.com/gemforce-team/gemsmith/blob/master/Changelog.txt
 
 * Gemsmith also includes a configuration file that allows you to rebind hotkeys. This includes both Gemsmith's own functions and base game's hotkeys.
 
+* Press Alt + "Perform combine" hotkey to reload your config and recipes.
+
 * Gemsmith keeps a log of the last session, if you see a floating message saying that an error has occured, there might be more information in there. Consult the README included with releases for details.
 
 
