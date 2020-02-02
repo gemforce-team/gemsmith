@@ -29,3 +29,8 @@
 	Recipe value is now formatted with thousands separators as well.
 	Improved info panel responsiveness when changing selectd recipe.
 	Changed the formatting & colors in the info panel a bit.
+	
+02.02.2020 v1.6 for 1.0.18a
+	Separated source code editing and main mod logic into two parts. Significantly reduced the amount of changes to the game's source!
+	The mod is now a standalone swf that's loaded by the patched game.
+	No new features, some changes to logging and error handling.
