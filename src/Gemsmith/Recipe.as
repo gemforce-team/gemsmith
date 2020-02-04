@@ -45,8 +45,8 @@ package Gemsmith
 			catch(error:Error)
 			{
 				stream.close();
-				Logger.UglyLog("LoadRecipeFromFile", error.message);
-				Logger.UglyLog("LoadRecipeFromFile", "In file: " + fileName);
+				Logger.uglyLog("Recipe.fromFile", error.message);
+				Logger.uglyLog("Recipe.fromFile", "In file: " + fileName);
 				return emptyRecipe;
 			}
 			var rex:RegExp = /[ \t]+/gim;
@@ -68,11 +68,21 @@ package Gemsmith
 				var gl: int = int(((String)(components[0])).match(lastDigits)[0]);
 				var gr: int = int(components[1]);
 				recipe.instructions.push({left:gl, right:gr});
+				if (Math.max(gl, gr) >= recipe.instructions.length)
+				{
+					recipe.name = "[Invalid!]" + recipe.name;
+					recipe.instructions = [];
+					Logger.uglyLog("Recipe.fromFile", "Invalid equation: ")
+					Logger.uglyLog("Recipe.fromFile", equation)
+					Logger.uglyLog("Recipe.fromFile", "In file: " + fileName);
+				}
 			}
 			recipe.calculateResultValues();
 			return recipe;
 		}
 		
+		// I'd make this private if I could, or implement a RecipeFactory(That'd have the same problemm, can't restrict the constructor)
+		// I'd like to ensure that recipes can always be handled properly, even if made from invalid equations
 		function Recipe() 
 		{
 			this.name = "No recipe";
@@ -83,10 +93,11 @@ package Gemsmith
 			this.combines = 0;
 		}
 		
+		// Takes a recipe and calculates the necessary values to later calculate total cost
+		// Also calculates relative grade increase
 		public function calculateResultValues(): void
 		{
-			// Takes a recipe and calculates the necessary values to later calculate total cost
-			// Also calculates relative grade increase
+			
 			var stepGrades: Array = new Array();
 			var stepValues: Array = new Array();
 			var stepCombines: Array = new Array();

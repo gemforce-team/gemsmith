@@ -25,12 +25,15 @@ package Gemsmith
 		
 		// UglyLog is ugly because I open, write, close the stream every time this method is called
 		// This is to guarantee that the messages arrive at the log in case of an uncaught exception
-		public static function UglyLog(source:String, message:String): void
+		public static function uglyLog(source:String, message:String): void
 		{
 			logStream.open(logFile, FileMode.APPEND);
 			var df:DateTimeFormatter = new DateTimeFormatter("");
 			df.setDateTimePattern("yyyy-MM-dd HH:mm:ss");
-			logStream.writeUTFBytes(df.format(new Date()) + "\t[" + source.substring(0,10) + "]:\t" + message + "\r\n");
+			var formattedSource:String = source.substring(0, 15);
+			for (; formattedSource.length < 15; )
+				formattedSource = formattedSource + ' ';
+			logStream.writeUTFBytes(df.format(new Date()) + "\t[" + formattedSource + "]:\t" + message + "\r\n");
 			logStream.close();
 		}
 	}

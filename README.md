@@ -23,13 +23,15 @@ That folder is referred to as **Gemsmith folder** in this readme.
 ## Features
 * A combine can be performed on a gem anywhere: in your inventory, in towers, lanterns, traps, amplifiers and in the enrage slot.
 
-* The recipes are loaded from a `recipes` folder in your Gemsmith folder, you can have as many as you need and switch between them with hotkeys. These recipes are defined in a certain format, devised for [gemforce](https://github.com/gemforce-team/gemforce. An example recipe is generated on startup. Keep in mind that at the moment only "combine" recipes are supported - explanation below.
+* The recipes are loaded from a `recipes` folder in your Gemsmith folder, you can have as many as you need and switch between them with hotkeys. These recipes are defined in a certain format, devised for [gemforce](https://github.com/gemforce-team/gemforce). An example recipe is generated on startup. Keep in mind that at the moment only "combine" recipes are supported - explanation below.
 
 * Gemsmith also includes a configuration file that allows you to rebind hotkeys. This includes both Gemsmith's own functions and base game's hotkeys.
 
 * Press Alt + "Perform combine" hotkey to **reload your config and recipes**.
 
 * Gemsmith keeps a log of the last session in your Gemsmith folder. If you see a floating message saying that an error has occured, there might be more information in there.
+
+* **Gemsmith automatically checks if an update is available by comparing the latest release tag with its own version.** You can opt-out by changing the appropriate setting in the configuration.
 
 
 ## Installing the mod

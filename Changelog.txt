@@ -34,3 +34,8 @@
 	Separated source code editing and main mod logic into two parts. Significantly reduced the amount of changes to the game's source!
 	The mod is now a standalone swf that's loaded by the patched game.
 	No new features, some changes to logging and error handling.
+	
+05.02.2020 v1.7 for 1.0.19a
+	Pressing DOT (Show/Hide info panels) now cycles through showing just the game's info panel, gemsmith's info panel, or off
+	Recipes are now sorted by name
+	Added automatic update checking. Opt-out is available in the config!
