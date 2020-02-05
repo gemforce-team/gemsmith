@@ -21,7 +21,7 @@ package Gemsmith
 	// The loader also requires a parameterless constructor (AFAIK), so we also have a .Bind method to bind our class to the game
 	public class Gemsmith extends MovieClip
 	{
-		public static const MOD_VERSION:String = "v1.7 for 1.0.19a";
+		public static const MOD_VERSION:String = "v1.0 for GCCS 1.0.6";
 		//Game objects
 		private var core:Object;/*IngameCore*/
 		private var cnt:Object;/*CntIngame*/
@@ -61,7 +61,7 @@ package Gemsmith
 			this.prefs = gameObjects.prefs;
 			this.infoPanelState = InfoPanelState.GEMSMITH;
 			this.updateAvailable = false;
-			checkForUpdates();
+			//checkForUpdates();
 			Logger.uglyLog("Gemsmith", "Gemsmith bound to game's objects!");
 			return this;
 		}
@@ -84,7 +84,7 @@ package Gemsmith
 					else
 					{
 						SB.playSound("sndalert");
-						GV.vfxEngine.createFloatingText4(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Error opening" + fileName + "!",16768392,12,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
+						GV.vfxEngine.createFloatingText(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Error opening" + fileName + "!",16768392,12,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
 					}
 				}
 			}
@@ -150,8 +150,6 @@ package Gemsmith
 			config["Hotkeys"] = new Object();
 			config["Hotkeys"]["Throw gem bombs"] = 66;
 			config["Hotkeys"]["Build tower"] = 84;
-			config["Hotkeys"]["Build lantern"] = 76;
-			config["Hotkeys"]["Build pylon"] = 80;
 			config["Hotkeys"]["Build trap"] = 82;
 			config["Hotkeys"]["Build wall"] = 87;
 			config["Hotkeys"]["Combine gems"] = 71;
@@ -164,17 +162,20 @@ package Gemsmith
 			config["Hotkeys"]["Upgrade gem"] = 85;
 			config["Hotkeys"]["Show/hide info panels"] = 190;
 			config["Hotkeys"]["Cast freeze strike spell"] = 49;
-			config["Hotkeys"]["Cast whiteout strike spell"] = 50;
-			config["Hotkeys"]["Cast ice shards strike spell"] = 51;
+			config["Hotkeys"]["Cast curse strike spell"] = 50;
+			config["Hotkeys"]["Cast wake of eternity strike spell"] = 51;
 			config["Hotkeys"]["Cast bolt enhancement spell"] = 52;
 			config["Hotkeys"]["Cast beam enhancement spell"] = 53;
 			config["Hotkeys"]["Cast barrage enhancement spell"] = 54;
-			config["Hotkeys"]["Create Critical Hit gem"] = 100;
-			config["Hotkeys"]["Create Mana Leeching gem"] = 101;
-			config["Hotkeys"]["Create Bleeding gem"] = 102;
-			config["Hotkeys"]["Create Armor Tearing gem"] = 97;
-			config["Hotkeys"]["Create Poison gem"] = 98;
-			config["Hotkeys"]["Create Slowing gem"] = 99;
+			config["Hotkeys"]["Create Mana Leeching gem"] = 103;
+			config["Hotkeys"]["Create Critical Hit gem"] = 104;
+			config["Hotkeys"]["Create Poolbound gem"] = 105;
+			config["Hotkeys"]["Create Chain Hit gem"] = 100;
+			config["Hotkeys"]["Create Poison gem"] = 101;
+			config["Hotkeys"]["Create Suppression gem"] = 102;
+			config["Hotkeys"]["Create Bloodbound gem"] = 97;
+			config["Hotkeys"]["Create Slowing gem"] = 98;
+			config["Hotkeys"]["Create Armor Tearing gem"] = 99;
 			config["Hotkeys"]["Gemsmith: Cycle selected recipe left"] = 33;
 			config["Hotkeys"]["Gemsmith: Perform combine"] = 36;
 			config["Hotkeys"]["Gemsmith: Cycle selected recipe right"] = 34;
@@ -232,7 +233,7 @@ package Gemsmith
 			if(this.currentRecipeIndex == -1)
 			{
 				SB.playSound("sndalert");
-				GV.vfxEngine.createFloatingText4(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"No recipe selected!",16768392,14,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
+				GV.vfxEngine.createFloatingText(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"No recipe selected!",16768392,14,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
 				return;
 			}
 			
@@ -263,14 +264,14 @@ package Gemsmith
 								this.core.inventorySlots[invSlot] = null;
 								this.core.controller.placeGemIntoSlot(resultingGem, invSlot);
 							}
-							else if(this.core.gemInEnragingSlot == gem)
+							/*else if(this.core.gemInEnragingSlot == gem)
 							{
 								this.core.cnt.cntGemInEnragingSlot.removeChild(gem.mc);
 
 								this.core.gemInEnragingSlot = null;
 								this.core.inputHandler.insertGemToEnragingSlot(resultingGem);
 								GV.ingameAchiCtrl.checkAchi(117,true,true);
-							}
+							}*/
 							else
 							{
 								var selectedBuilding:Object = null;
@@ -305,7 +306,7 @@ package Gemsmith
 								else
 								{
 									SB.playSound("sndalert");
-									GV.vfxEngine.createFloatingText4(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Can't find where the gem is!",16768392,20,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
+									GV.vfxEngine.createFloatingText(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Can't find where the gem is!",16768392,20,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
 									return;
 								}                          
 							}
@@ -324,14 +325,14 @@ package Gemsmith
 						else
 						{
 							SB.playSound("sndalert");
-							GV.vfxEngine.createFloatingText4(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Not enough mana",16768392,12,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
+							GV.vfxEngine.createFloatingText(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Not enough mana",16768392,12,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
 							return;
 						}
 					}
 					else
 					{
 						SB.playSound("sndalert");
-						GV.vfxEngine.createFloatingText4(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"No gem under cursor",16768392,12,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
+						GV.vfxEngine.createFloatingText(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"No gem under cursor",16768392,12,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
 						return;
 					}
 				}
@@ -342,7 +343,7 @@ package Gemsmith
 				Logger.uglyLog("CastCombineOnMouse", "Caught an exception!");
 				Logger.uglyLog("CastCombineOnMouse", error.message);
 				SB.playSound("sndalert");
-				GV.vfxEngine.createFloatingText4(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Caught an exception!",16768392,20,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
+				GV.vfxEngine.createFloatingText(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Caught an exception!",16768392,20,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
 				return;
 			}
 		}
@@ -364,8 +365,8 @@ package Gemsmith
 			{
 				// We're handling mana expenditure stats ourselves
 				var sourceCombiningCost: Number = sourceGem.combinationManaValue.g();
-				var sourceComponentCosts: Array = new Array(0, 0, 0, 0, 0, 0);
-				for(var c: int = 0; c < 6; c++)
+				var sourceComponentCosts: Array = new Array(0, 0, 0, 0, 0, 0, 0, 0, 0);
+				for(var c: int = 0; c < 9; c++)
 					sourceComponentCosts[c] = sourceGem.manaValuesByComponent[c].g();
 
 				// Arrays to hold the step-by-step costs, these are filled as we perform the combine
@@ -379,7 +380,7 @@ package Gemsmith
 					var res:Object = this.core.spellCaster.combineGems(virtualInv[instr.left], virtualInv[instr.right], true, true, false);
 					res.kills.s(Math.round(res.kills.g() / 2));
 					res.hits.s(Math.round(res.hits.g() / 2));
-					res.manaLeeched = res.manaLeeched / 2;
+					//res.manaLeeched = res.manaLeeched / 2;
 					virtualInv.push(res);
 
 					// Now we fill in the mana expenditure values
@@ -396,12 +397,16 @@ package Gemsmith
 				this.core.spellCaster.stats.spentManaOnCombinationCost += totalCombiningCost - sourceCombiningCost;
 
 				var resultingComponentCosts: Array = stepComponentCosts.pop();
-				this.core.spellCaster.stats.spentManaOnBleedingGem += resultingComponentCosts[2] - sourceComponentCosts[2];
-				this.core.spellCaster.stats.spentManaOnCritHitGem += resultingComponentCosts[0] - sourceComponentCosts[0];
+				//this.core.spellCaster.stats.spentManaOnBleedingGem += resultingComponentCosts[2] - sourceComponentCosts[2];
+				this.core.spellCaster.stats.spentManaOnCritHitGem += resultingComponentCosts[1] - sourceComponentCosts[1];
 				this.core.spellCaster.stats.spentManaOnPoisonGem += resultingComponentCosts[4] - sourceComponentCosts[4];
-				this.core.spellCaster.stats.spentManaOnSlowingGem += resultingComponentCosts[5] - sourceComponentCosts[5];
-				this.core.spellCaster.stats.spentManaOnManaLeechingGem += resultingComponentCosts[1] - sourceComponentCosts[1];
-				this.core.spellCaster.stats.spentManaOnArmorTearingGem += resultingComponentCosts[3] - sourceComponentCosts[3];
+				this.core.spellCaster.stats.spentManaOnSlowingGem += resultingComponentCosts[7] - sourceComponentCosts[7];
+				this.core.spellCaster.stats.spentManaOnManaLeechingGem += resultingComponentCosts[0] - sourceComponentCosts[0];
+				this.core.spellCaster.stats.spentManaOnArmorTearingGem += resultingComponentCosts[8] - sourceComponentCosts[8];
+				this.core.spellCaster.stats.spentManaOnPoolboundGem += resultingComponentCosts[2] - sourceComponentCosts[2];
+				this.core.spellCaster.stats.spentManaOnBloodboundGem += resultingComponentCosts[6] - sourceComponentCosts[6];
+				this.core.spellCaster.stats.spentManaOnSuppressingGem += resultingComponentCosts[5] - sourceComponentCosts[5];
+				this.core.spellCaster.stats.spentManaOnChainHitGem += resultingComponentCosts[3] - sourceComponentCosts[3];
 				
 				this.core.spellCaster.stats.highestGradeGemCreated = Math.max(resultingGem.grade.g() + 1, this.core.spellCaster.stats.highestGradeGemCreated);
 				this.core.stats.gemHighestMaxDamage = Math.max(this.core.stats.gemHighestMaxDamage, resultingGem.sd2_CompNumMod.damageMax.g());
@@ -410,7 +415,7 @@ package Gemsmith
 			}
 			catch(error: Error) {
 				SB.playSound("sndalert");
-				GV.vfxEngine.createFloatingText4(GV.main.mouseX, (GV.main.mouseY < 60) ? Number(GV.main.mouseY + 30) : Number(GV.main.mouseY - 20), "An error occured!", 16768392, 12, "center", Math.random() * 3 - 1.5, -4 - Math.random() * 3, 0, 0.55, 12, 0, 1000);
+				GV.vfxEngine.createFloatingText(GV.main.mouseX, (GV.main.mouseY < 60) ? Number(GV.main.mouseY + 30) : Number(GV.main.mouseY - 20), "An error occured!", 16768392, 12, "center", Math.random() * 3 - 1.5, -4 - Math.random() * 3, 0, 0.55, 12, 0, 1000);
 				Logger.uglyLog("PerformCombineFrominstructions", "Caught an exception!");
 				Logger.uglyLog("PerformCombineFrominstructions", error.message);
 				return sourceGem;
@@ -427,11 +432,11 @@ package Gemsmith
 			var vRange4:Number = NaN;
 			var vRange5:Number = NaN;
 			vRangeRatio = gem.rangeRatio.g();
-			vRange4 = gem.sd4_IntensityMod.range.g();
-			vRange5 = gem.sd5_EnhancedOrTrapOrLantern.range.g();
+			vRange4 = gem.sd4_BoundMod.range.g();
+			vRange5 = gem.sd5_EnhancedOrTrap.range.g();
 			gem.rangeRatio.s(1);
-			gem.sd4_IntensityMod.range.s(vRange4 / vRangeRatio * gem.rangeRatio.g());
-			gem.sd5_EnhancedOrTrapOrLantern.range.s(vRange5 / vRangeRatio * gem.rangeRatio.g());
+			gem.sd4_BoundMod.range.s(vRange4 / vRangeRatio * gem.rangeRatio.g());
+			gem.sd5_EnhancedOrTrap.range.s(vRange5 / vRangeRatio * gem.rangeRatio.g());
 
 			// In case of failure we just return the source gem
 			var resultingGem:Object = performCombineFromRecipe(recipe, gem) || gem;
@@ -439,11 +444,11 @@ package Gemsmith
 			GV.gemBitmapCreator.giveGemBitmaps(resultingGem);
 
 			// Restore the modified range
-			vRange4 = resultingGem.sd4_IntensityMod.range.g();
-			vRange5 = resultingGem.sd5_EnhancedOrTrapOrLantern.range.g();
+			vRange4 = resultingGem.sd4_BoundMod.range.g();
+			vRange5 = resultingGem.sd5_EnhancedOrTrap.range.g();
 			resultingGem.rangeRatio.s(vRangeRatio);
-			resultingGem.sd4_IntensityMod.range.s(vRange4 * resultingGem.rangeRatio.g());
-			resultingGem.sd5_EnhancedOrTrapOrLantern.range.s(vRange5 * resultingGem.rangeRatio.g());
+			resultingGem.sd4_BoundMod.range.s(vRange4 * resultingGem.rangeRatio.g());
+			resultingGem.sd5_EnhancedOrTrap.range.s(vRange5 * resultingGem.rangeRatio.g());
 
 			return resultingGem;
 		}
@@ -451,8 +456,8 @@ package Gemsmith
 		// A helper method for summing two gems' component costs
 		private function addByComponentCosts(cc1: Array, cc2: Array): Array
 		{
-			var cc3: Array = new Array(0, 0, 0, 0, 0, 0);/*Gem component costs*/
-			for(var c: int = 0; c < 6; c++)
+			var cc3: Array = new Array(0, 0, 0, 0, 0, 0, 0, 0, 0);/*Gem component costs*/
+			for(var c: int = 0; c < 9; c++)
 				cc3[c] = cc1[c]+cc2[c];
 			return cc3;
 		}
@@ -517,7 +522,7 @@ package Gemsmith
 				if (pE.controlKey && pE.altKey && pE.shiftKey)
 				{
 					SB.playSound("sndalert");
-					GV.vfxEngine.createFloatingText4(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Reloading mods!",16768392,14,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
+					GV.vfxEngine.createFloatingText(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Reloading mods!",16768392,14,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
 					this.core.inputHandler2.reloadMods();
 					continueCallerExecution = false;
 				}
@@ -636,7 +641,7 @@ package Gemsmith
 		{
 			this.configuration = loadConfigurationOrDefault();
 			this.recipes = formRecipeList();
-			GV.vfxEngine.createFloatingText4(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Reloaded recipes & config!",99999999,20,"center",0,0,0,0,24,0,1000);
+			GV.vfxEngine.createFloatingText(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Reloaded recipes & config!",99999999,20,"center",0,0,0,0,24,0,1000);
 			SB.playSound("sndalert");
 		}
 		
