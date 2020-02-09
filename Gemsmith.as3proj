@@ -4,7 +4,7 @@
   <output>
     <movie outputType="Application" />
     <movie input="" />
-    <movie path="C:\Games\Steam\steamapps\common\GemCraft Frostborn Wrath\Gemsmith.swf" />
+    <movie path="C:\Games\Steam\steamapps\common\GemCraft Frostborn Wrath\Mods\Gemsmith-1.8-for-1.0.19a.swf" />
     <movie fps="30" />
     <movie width="1920" />
     <movie height="1080" />
@@ -68,6 +68,7 @@
   </intrinsics>
   <!-- Assets to embed into the output SWF -->
   <library>
+    <!-- example: <asset path="..." id="..." update="..." glyphs="..." mode="..." place="..." sharepoint="..." /> -->
   </library>
   <!-- Class files to compile (other referenced classes will automatically be included) -->
   <compileTargets>

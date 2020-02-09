@@ -9,14 +9,12 @@ package Gemsmith
 	import flash.filesystem.FileStream;
 	import flash.filesystem.FileMode;
 	
-	import Gemsmith.Gemsmith;
-	
 	public class Recipe 
 	{
 		//These would have public getters\setters anyways so I'm leaving them as public for now
 		//Can refactor later if needed, it shouldn't break the consumer code
 		public var name:String;
-		public var fileName:String;
+		public var filePath:String;
 		public var instructions:Array;
 		public var gradeIncrease:Number;
 		public var value:Number;
@@ -31,10 +29,10 @@ package Gemsmith
 		
 		// Parses a recipe from a file with the given name
 		// Returns a recipe Object that has an array of instuctions, cost multipliers, and a name
-		public static function fromFile(fileName:String): Recipe
+		public static function fromFile(filePath:String): Recipe
 		{
 	
-			var file:File = File.applicationStorageDirectory.resolvePath("Gemsmith/recipes/" + fileName);
+			var file:File = new File(filePath);
 			var stream:FileStream = new FileStream();
 			var fileContents: String = "";
 			try {
@@ -45,15 +43,15 @@ package Gemsmith
 			catch(error:Error)
 			{
 				stream.close();
-				Logger.uglyLog("Recipe.fromFile", error.message);
-				Logger.uglyLog("Recipe.fromFile", "In file: " + fileName);
+				Gemsmith.Gemsmith.logger.log("Recipe.fromFile", error.message);
+				Gemsmith.Gemsmith.logger.log("Recipe.fromFile", "In file: " + filePath);
 				return emptyRecipe;
 			}
 			var rex:RegExp = /[ \t]+/gim;
 			fileContents = fileContents.replace(rex, '');
 			var recipe:Recipe = new Recipe();
-			recipe.name = fileName.substring(0, fileName.length - 4);
-			recipe.fileName = fileName;
+			recipe.name = file.name.substring(0, file.name.length - 4);
+			recipe.filePath = filePath;
 			recipe.instructions = new Array();
 			for each(var equation: String in fileContents.split('\n'))
 			{
@@ -72,9 +70,9 @@ package Gemsmith
 				{
 					recipe.name = "[Invalid!]" + recipe.name;
 					recipe.instructions = [];
-					Logger.uglyLog("Recipe.fromFile", "Invalid equation: ")
-					Logger.uglyLog("Recipe.fromFile", equation)
-					Logger.uglyLog("Recipe.fromFile", "In file: " + fileName);
+					Gemsmith.Gemsmith.logger.log("Recipe.fromFile", "Invalid equation: ")
+					Gemsmith.Gemsmith.logger.log("Recipe.fromFile", equation)
+					Gemsmith.Gemsmith.logger.log("Recipe.fromFile", "In file: " + filePath);
 				}
 			}
 			recipe.calculateResultValues();
@@ -86,7 +84,7 @@ package Gemsmith
 		function Recipe() 
 		{
 			this.name = "No recipe";
-			this.fileName = "";
+			this.filePath = "";
 			this.instructions = [];
 			this.gradeIncrease = NaN;
 			this.value = NaN;

@@ -6,28 +6,37 @@ package Gemsmith
 	 */
 	
 	import flash.display.MovieClip;
-	import flash.events.Event;
-	import flash.filesystem.File;
-	import flash.filesystem.FileMode;
-	import flash.filesystem.FileStream;
-	import flash.events.KeyboardEvent;
+	import flash.filesystem.*;
+	import flash.system.*;
+	import flash.events.*;
 	import flash.filters.GlowFilter;
 	import flash.net.*;
 	import Gemsmith.Recipe;
-	import Gemsmith.Logger;
 	import Gemsmith.InfoPanelState;
 
 	// We extend MovieClip so that flash.display.Loader accepts our class
 	// The loader also requires a parameterless constructor (AFAIK), so we also have a .Bind method to bind our class to the game
 	public class Gemsmith extends MovieClip
 	{
-		public static const MOD_VERSION:String = "v1.7 for 1.0.19a";
-		//Game objects
+		public const VERSION:String = "1.8";
+		public const GAME_VERSION:String = "1.0.19a";
+		public const BEZEL_VERSION:String = "0.1.0";
+		public const MOD_NAME:String = "Gemsmith";
+		
+		private var gameObjects:Object;
+		
+		// Game object shortcuts
 		private var core:Object;/*IngameCore*/
 		private var cnt:Object;/*CntIngame*/
 		public var GV:Object;/*GV*/
 		public var SB:Object;/*SB*/
 		public var prefs:Object;/*Prefs*/
+		
+		// Mod loader object
+		internal static var bezel:Object;
+		
+		internal static var logger:Object;
+		internal static var storage:File;
 
 		private var recipes:Array;
 		private var currentRecipeIndex:int;
@@ -40,29 +49,34 @@ package Gemsmith
 		public function Gemsmith()
 		{
 			super();
+		}
+		
+		// This method binds the class to the game's objects
+		public function bind(modLoader:Object, gameObjects:Object) : Gemsmith
+		{
+			bezel = modLoader;
+			logger = bezel.getLogger("Gemsmith");
+			storage = File.applicationStorageDirectory;
+			this.gameObjects = gameObjects;
+			this.core = gameObjects.GV.ingameCore;
+			this.cnt = gameObjects.GV.main.cntScreens.cntIngame;
+			this.SB = gameObjects.SB;
+			this.GV = gameObjects.GV;
+			this.prefs = gameObjects.prefs;
+			
 			prepareFoldersAndLogger();
-			Logger.init();
 			this.recipes = formRecipeList();
 			this.configuration = loadConfigurationOrDefault();
 			this.configuration = updateConfig(this.configuration);
 			this.defaultHotkeys = createDefaultConfiguration().Hotkeys;
-			
-			Logger.uglyLog("Gemsmith", "Gemsmith initialized!");
-		}
-		
-		// This method binds the class to the game's objects
-		public function bind(gameObjects:Object) : Gemsmith
-		{
-			//pCore:Object/*IngameCore*/, pCnt:Object/*CntIngame*/, gv:Object/*GV*/, sb:Object/*SB*/
-			this.core = gameObjects.core;
-			this.cnt = gameObjects.cnt;
-			this.SB = gameObjects.SB;
-			this.GV = gameObjects.GV;
-			this.prefs = gameObjects.prefs;
 			this.infoPanelState = InfoPanelState.GEMSMITH;
 			this.updateAvailable = false;
+			
+			registerEventListeners();
+			
 			checkForUpdates();
-			Logger.uglyLog("Gemsmith", "Gemsmith bound to game's objects!");
+			
+			logger.log("Gemsmith", "Gemsmith initialized!");
 			return this;
 		}
 		
@@ -70,7 +84,7 @@ package Gemsmith
 		private function formRecipeList(): Array
 		{
 			var newRecipes: Array = new Array();
-			var recipesFolder:File = File.applicationStorageDirectory.resolvePath("Gemsmith/recipes");
+			var recipesFolder:File = storage.resolvePath("Gemsmith/recipes");
 			
 			var fileList: Array = recipesFolder.getDirectoryListing();
 			for(var f:int = 0; f < fileList.length; f++)
@@ -78,7 +92,7 @@ package Gemsmith
 				var fileName:String = fileList[f].name;
 				if (fileName.substring(fileName.length - 4, fileName.length) == ".txt")
 				{
-					var recipe:Recipe = Recipe.fromFile(fileName);
+					var recipe:Recipe = Recipe.fromFile(recipesFolder.resolvePath(fileName).nativePath);
 					if(recipe != Recipe.emptyRecipe)
 						newRecipes.push(recipe);
 					else
@@ -88,7 +102,7 @@ package Gemsmith
 					}
 				}
 			}
-			Logger.uglyLog("FormRecipeList", "Found " + newRecipes.length + " recipe files.");
+			logger.log("FormRecipeList", "Found " + newRecipes.length + " recipe files.");
 			if (newRecipes.length == 0)
 			{
 				this.currentRecipeIndex = -1;
@@ -103,7 +117,7 @@ package Gemsmith
 
 		private function loadConfigurationOrDefault(): Object
 		{
-			var configFile:File = File.applicationStorageDirectory.resolvePath("Gemsmith/Gemsmith_config.json");
+			var configFile:File = storage.resolvePath("Gemsmith/Gemsmith_config.json");
 			var configStream:FileStream = new FileStream();
 			var config:Object = null;
 			var configJSON:String = null;
@@ -124,21 +138,21 @@ package Gemsmith
 					configJSON = configStream.readUTFBytes(configStream.bytesAvailable);
 					config = JSON.parse(configJSON);
 					
-					Logger.uglyLog("LoadConfiguration", "Loaded existing configuration");
+					logger.log("LoadConfiguration", "Loaded existing configuration");
 				}
 				catch(error:Error)
 				{
 					config = createDefaultConfiguration();
-					Logger.uglyLog("LoadConfiguration", "There was an error when loading an existing config file:");
-					Logger.uglyLog("LoadConfiguration", error.message);
-					Logger.uglyLog("LoadConfiguration", "Configuration was reset to defaults");
+					logger.log("LoadConfiguration", "There was an error when loading an existing config file:");
+					logger.log("LoadConfiguration", error.message);
+					logger.log("LoadConfiguration", "Configuration was reset to defaults");
 				}
 				configStream.close();
 
 				if(config == null || config["Hotkeys"] == null)
 				{
 					config = createDefaultConfiguration();
-					Logger.uglyLog("LoadConfiguration", "Configuration was invalid for some reason, using defaults");
+					logger.log("LoadConfiguration", "Configuration was invalid for some reason, using defaults");
 				}
 			}
 			return config;
@@ -189,7 +203,7 @@ package Gemsmith
 		// A placeholder method to later implement config "upgrading" when a new version adds some values
 		private function updateConfig(config:Object) : Object
 		{
-			var oldConfigFile:File = File.applicationStorageDirectory.resolvePath("Gemsmith/Gemsmith_config.json.backup");
+			var oldConfigFile:File = storage.resolvePath("Gemsmith/Gemsmith_config.json.backup");
 			var configStream:FileStream = new FileStream();
 			configStream.open(oldConfigFile, FileMode.WRITE);
 			configStream.writeUTFBytes(JSON.stringify(this.configuration, null, 2));
@@ -202,7 +216,7 @@ package Gemsmith
 			if (config["Check for updates"] == null)
 				config["Check for updates"] = true;
 				
-			var configFile:File = File.applicationStorageDirectory.resolvePath("Gemsmith/Gemsmith_config.json");
+			var configFile:File = storage.resolvePath("Gemsmith/Gemsmith_config.json");
 			configStream.open(configFile, FileMode.WRITE);
 			configStream.writeUTFBytes(JSON.stringify(this.configuration, null, 2));
 			configStream.close();
@@ -339,8 +353,8 @@ package Gemsmith
 			catch(error:Error)
 			{
 				// TODO handle this exception wrt the gem
-				Logger.uglyLog("CastCombineOnMouse", "Caught an exception!");
-				Logger.uglyLog("CastCombineOnMouse", error.message);
+				logger.log("CastCombineOnMouse", "Caught an exception!");
+				logger.log("CastCombineOnMouse", error.message);
 				SB.playSound("sndalert");
 				GV.vfxEngine.createFloatingText4(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Caught an exception!",16768392,20,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
 				return;
@@ -411,8 +425,8 @@ package Gemsmith
 			catch(error: Error) {
 				SB.playSound("sndalert");
 				GV.vfxEngine.createFloatingText4(GV.main.mouseX, (GV.main.mouseY < 60) ? Number(GV.main.mouseY + 30) : Number(GV.main.mouseY - 20), "An error occured!", 16768392, 12, "center", Math.random() * 3 - 1.5, -4 - Math.random() * 3, 0, 0.55, 12, 0, 1000);
-				Logger.uglyLog("PerformCombineFrominstructions", "Caught an exception!");
-				Logger.uglyLog("PerformCombineFrominstructions", error.message);
+				logger.log("PerformCombineFrominstructions", "Caught an exception!");
+				logger.log("PerformCombineFrominstructions", error.message);
 				return sourceGem;
 			}
 			return sourceGem;
@@ -491,26 +505,24 @@ package Gemsmith
 				return NaN;
 		}
 
-		// CB=Callback
-		// This method is called by IngameInputHandler2
-		// It either:
+		// Either:
 		// 1 - Processes the hotkey if it's bound to a Gemsmith function
 		// 2 - Substitutes the KeyCode from Gemsmith_config.json
 		// Then it either lets the base game handler to run (so it then fires the function with the substituted KeyCode)
 		// or stops the base game's handler
-		public function cb_interceptKeyboardEvent(pE: KeyboardEvent) : Boolean
+		public function eh_interceptKeyboardEvent(event: Object): void
 		{
-			var continueCallerExecution:Boolean = true;
+			var pE:KeyboardEvent = event.eventArgs.event;
 
 			if(pE.keyCode == this.configuration["Hotkeys"]["Gemsmith: Cycle selected recipe left"])
 			{
 				cycleSelectedRecipe(-1);
-				continueCallerExecution = false;
+				event.eventArgs.continueDefault = false;
 			}
 			else if(pE.keyCode == this.configuration["Hotkeys"]["Gemsmith: Cycle selected recipe right"])
 			{
 				cycleSelectedRecipe(1);
-				continueCallerExecution = false;
+				event.eventArgs.continueDefault = false;
 			}
 			else if(pE.keyCode == this.configuration["Hotkeys"]["Gemsmith: Perform combine"])
 			{
@@ -519,30 +531,28 @@ package Gemsmith
 					SB.playSound("sndalert");
 					GV.vfxEngine.createFloatingText4(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Reloading mods!",16768392,14,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
 					this.core.inputHandler2.reloadMods();
-					continueCallerExecution = false;
+				event.eventArgs.continueDefault = false;
 				}
 				else if (pE.altKey)
 					reloadEverything();
 				else
 					castCombineOnMouse();
-				continueCallerExecution = false;
+				event.eventArgs.continueDefault = false;
 			}
 			else if(pE.keyCode == this.configuration["Hotkeys"]["Show/hide info panels"])
 			{
 				if (this.infoPanelState == InfoPanelState.HIDDEN)
 				{
 					this.infoPanelState = InfoPanelState.BASEGAME;
-					continueCallerExecution = true;
 				}
 				else if (this.infoPanelState == InfoPanelState.BASEGAME)
 				{
 					this.infoPanelState = InfoPanelState.GEMSMITH;
-					continueCallerExecution = false;
+				event.eventArgs.continueDefault = false;
 				}
 				else
 				{
 					this.infoPanelState = InfoPanelState.HIDDEN;
-					continueCallerExecution = true;
 				}
 			}
 			else
@@ -552,21 +562,19 @@ package Gemsmith
 					if(this.defaultHotkeys[name] == pE.keyCode)
 					{
 						pE.keyCode = this.configuration["Hotkeys"][name] || 0;
-						continueCallerExecution = true;
 						break;
 					}
 				}
-			}
-
-			return continueCallerExecution;   
+			} 
 		}
 
-		// CB=Callback
-		// This function is called by IngameInfoPanelRenderer2 after it's done creating a gem's info panel
-		// but before it's displayed on the screen
 		// Gemsmith adds its own tooltips in this method
-		public function cb_gemInfoPanelFormed(vIp:Object/*McInfoPanel*/, gem:Object/*Gem*/, numberFormatter:Object/*NumberFormatter*/): void
+		public function eh_gemInfoPanelFormed(event:Object): void
 		{
+			//logger.log("eh_GemInfoPanelFormed", "Responding to an event!");
+			var vIp:Object = event.eventArgs.infoPanel;
+			var gem:Object = event.eventArgs.gem;
+			var numberFormatter:Object = event.eventArgs.numberFormatter;
 			if (this.infoPanelState == InfoPanelState.GEMSMITH)
 			{
 				vIp.addExtraHeight(4);
@@ -579,39 +587,41 @@ package Gemsmith
 				if(this.updateAvailable)
 					vIp.addTextfield(4748628, "Update available!", true, 7);
 				else
-					vIp.addTextfield(10526880, "Mod version: " + MOD_VERSION, true, 7);
+					vIp.addTextfield(10526880, "Mod version: " + prettyVersion(), true, 7);
 			}
+			//logger.log("eh_GemInfoPanelFormed", "Done with the event!");
 		}
 		
 		private function prepareFoldersAndLogger(): void
 		{
-			var storageFolder:File = File.applicationStorageDirectory.resolvePath("Gemsmith");
-			if(!storageFolder.isDirectory)
+			var storageFolder:File = storage.resolvePath("Gemsmith");
+			if (!storageFolder.isDirectory)
+			{
+				logger.log("PrepareFolders", "Creating ./Gemsmith");
 				storageFolder.createDirectory();
-
-			Logger.init();
+			}
 				
-			var recipesFolder:File = File.applicationStorageDirectory.resolvePath("Gemsmith/recipes");
+			var recipesFolder:File = storage.resolvePath("Gemsmith/recipes");
 			if(!recipesFolder.isDirectory)
 			{
-				Logger.uglyLog("PrepareFolders", "Creating ./recipes");
+				logger.log("PrepareFolders", "Creating ./recipes");
 				recipesFolder.createDirectory();
-				var exampleRecipeFile:File = File.applicationStorageDirectory.resolvePath("Gemsmith/recipes/example_8combine.txt");
+				var exampleRecipeFile:File = storage.resolvePath("Gemsmith/recipes/example_8combine.txt");
 				var eRFStream:FileStream = new FileStream();
 				eRFStream.open(exampleRecipeFile, FileMode.WRITE);
 				eRFStream.writeUTFBytes("o\r\n0+0\r\n1+0\r\n2+0\r\n3+0\r\n4+0\r\n5+1");
 				eRFStream.close();
 			}
 
-			var fwgc:File = File.applicationStorageDirectory.resolvePath("FWGC");
+			var fwgc:File = storage.resolvePath("FWGC");
 			if(!fwgc.isDirectory)
 				return;
 
-			Logger.uglyLog("PrepareFolders", "Moving stuff from ./FWGC");
-			var oldRecipesFolder:File = File.applicationStorageDirectory.resolvePath("FWGC/recipes");
+			logger.log("PrepareFolders", "Moving stuff from ./FWGC");
+			var oldRecipesFolder:File = storage.resolvePath("FWGC/recipes");
 			oldRecipesFolder.copyTo(recipesFolder, true);
-			Logger.uglyLog("PrepareFolders", "Moved recipes");
-			var oldConfig:File = File.applicationStorageDirectory.resolvePath("FWGC/FWGC_config.json");
+			logger.log("PrepareFolders", "Moved recipes");
+			var oldConfig:File = storage.resolvePath("FWGC/FWGC_config.json");
 			if(oldConfig.exists)
 			{
 				var oldCStream:FileStream = new FileStream()
@@ -625,11 +635,11 @@ package Gemsmith
 				oldCStream.writeUTFBytes(oldJSON);
 				oldCStream.close();
 				oldConfig.copyTo(storageFolder.resolvePath("Gemsmith_config.json"), true);
-				Logger.uglyLog("PrepareFolders", "Moved config");
+				logger.log("PrepareFolders", "Moved config");
 			}
 
 			fwgc.moveToTrash();
-			Logger.uglyLog("PrepareFolders", "Moved ./FWGC to trash!");
+			logger.log("PrepareFolders", "Moved ./FWGC to trash!");
 		}
 		
 		public function reloadEverything(): void
@@ -640,32 +650,41 @@ package Gemsmith
 			SB.playSound("sndalert");
 		}
 		
+		public function prettyVersion(): String
+		{
+			return 'v' + VERSION + ' for ' + GAME_VERSION;
+		}
+		
 		private function checkForUpdates(): void
 		{
 			if(!this.configuration["Check for updates"])
 				return;
 			
-			Logger.uglyLog("CheckForUpdates", "Mod version: " + MOD_VERSION);
-			Logger.uglyLog("CheckForUpdates", "Checking for updates...");
+			logger.log("CheckForUpdates", "Mod version: " + prettyVersion());
+			logger.log("CheckForUpdates", "Checking for updates...");
 			var repoAddress:String = "https://api.github.com/repos/gemforce-team/gemsmith/releases/latest";
 			var request:URLRequest = new URLRequest(repoAddress);
 
 			var loader:URLLoader = new URLLoader();
 			var localThis:Gemsmith = this;
-			try
-			{
-				loader.load(request);
-				loader.addEventListener(Event.COMPLETE, function(e:Event): void{
-					var latestTag:String = JSON.parse(loader.data).tag_name.replace(/[-]/gim,' ');
-					localThis.updateAvailable = (latestTag != MOD_VERSION);
-					Logger.uglyLog("CheckForUpdates", localThis.updateAvailable ? "Update available! " + latestTag : "Using the latest version:" + latestTag);
-				});
-			}
-			catch(err:Error)
-			{
-				Logger.uglyLog("CheckForUpdates", "Caught an error when checking for updates!");
-				Logger.uglyLog("CheckForUpdates", err.message);
-			}
+			
+			loader.addEventListener(Event.COMPLETE, function(e:Event): void {
+				var latestTag:Object = JSON.parse(loader.data).tag_name;
+				var latestVersion:String = latestTag.replace(/[v]/gim, ' ').split('-')[0];
+				localThis.updateAvailable = (latestVersion != VERSION);
+				logger.log("CheckForUpdates", localThis.updateAvailable ? "Update available! " + latestTag : "Using the latest version: " + latestTag);
+			});
+			loader.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent): void {
+				logger.log("CheckForUpdates", "Caught an error when checking for updates!");
+			});
+			
+			loader.load(request);
+		}
+		
+		private function registerEventListeners(): void
+		{
+			bezel.addEventListener("gemInfoPanelFormed", eh_gemInfoPanelFormed);
+			bezel.addEventListener("keyboardKeyDown", eh_interceptKeyboardEvent);
 		}
 	}
 }
