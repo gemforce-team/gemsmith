@@ -29,7 +29,7 @@ That folder is referred to as **Gemsmith folder** in this readme.
 
 * Press Alt + "Perform combine" hotkey to **reload your config and recipes**.
 
-* Gemsmith keeps a log of the last session in your Gemsmith folder. If you see a floating message saying that an error has occured, there might be more information in there.
+* Gemsmith keeps a log of the last session in `%AppData%\com.giab.games.gcfw.steam\Local Store\Bezel Mod Loader\Bezel_log.log`. If you see a floating message saying that an error has occured, there might be more information in there.
 
 * **Gemsmith automatically checks if an update is available by comparing the latest release tag with its own version.** You can opt-out by changing the appropriate setting in the configuration.
 
