@@ -35,7 +35,7 @@ That folder is referred to as **Gemsmith folder** in this readme.
 
 
 ## Installing the mod
-The modification consists of two parts: a patch applied to the game and the mod's .swf that the patched game loads. The patch is a diff created with Courgette.
+Important warning! Starting with v1.8 for 1.0.20a Gemsmith now depends on BezelModLoader.
 
 **To install the mod** grab a release (links below) for your game version. Copy `applyDiff.bat`, `courgette64.exe`, `Gemsmith-x.x-for-y.y.y.diff` and `Gemsmith.swf` from the archive into the game's folder (To navigate to the game's folder: rightclick the game in steam -> Manage -> Browse local files).
 

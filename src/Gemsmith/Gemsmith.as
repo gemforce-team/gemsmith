@@ -19,7 +19,7 @@ package Gemsmith
 	public class Gemsmith extends MovieClip
 	{
 		public const VERSION:String = "1.8";
-		public const GAME_VERSION:String = "1.0.20";
+		public const GAME_VERSION:String = "1.0.20a";
 		public const BEZEL_VERSION:String = "0.1.0";
 		public const MOD_NAME:String = "Gemsmith";
 		
