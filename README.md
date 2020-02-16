@@ -41,10 +41,6 @@ That folder is referred to as **Gemsmith folder** in this readme.
 
 **If there is no `Mods` folder**, you need to first install Bezel Mod Loader (link above).
 
-[More about Courgette](https://blog.chromium.org/2009/07/smaller-is-faster-and-safer-too.html)
-
-[Courgette repo](https://chromium.googlesource.com/chromium/src/courgette/+/master)
-
 
 # Uninstalling the mod
 Delete `Gemsmith-x.x-for-y.y.y.swf` from the `Mods` folder.
