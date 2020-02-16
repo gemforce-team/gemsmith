@@ -35,11 +35,11 @@ That folder is referred to as **Gemsmith folder** in this readme.
 
 
 ## Installing the mod
-Important warning! Starting with v1.8 for 1.0.20a Gemsmith now depends on BezelModLoader.
+### Important warning! Starting with v1.8 for 1.0.20a Gemsmith now depends on [Bezel Mod Loader](https://github.com/gemforce-team/BezelModLoader).
 
-**To install the mod** grab a release (links below) for your game version. Copy `applyDiff.bat`, `courgette64.exe`, `Gemsmith-x.x-for-y.y.y.diff` and `Gemsmith.swf` from the archive into the game's folder (To navigate to the game's folder: rightclick the game in steam -> Manage -> Browse local files).
+**To install the mod** grab a release (links below) for your game version. Copy `Gemsmith-x.x-for-y.y.y.swf` from the archive into the `Mods` folder in the game's folder (To navigate to the game's folder: rightclick the game in steam -> Manage -> Browse local files).
 
-After that launch `applyDiff.bat`, your game will be patched and all unnecessary files deleted. Then launch the game normally through steam.
+**If there is no `Mods` folder**, you need to first install Bezel Mod Loader (link above).
 
 [More about Courgette](https://blog.chromium.org/2009/07/smaller-is-faster-and-safer-too.html)
 
@@ -47,9 +47,7 @@ After that launch `applyDiff.bat`, your game will be patched and all unnecessary
 
 
 # Uninstalling the mod
-There are two ways to restore your original .swf
-1) Delete "GemCraft Frostborn Wrath.swf" and rename "GemCraft Frostborn Wrath Backup.swf" to "GemCraft Frostborn Wrath.swf"
-2) Run steam's "Verify integrity of game files" and it'll be redownloaded.
+Delete `Gemsmith-x.x-for-y.y.y.swf` from the `Mods` folder.
 
 
 ## Releases
