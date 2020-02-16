@@ -15,7 +15,7 @@ https://github.com/gemforce-team/gemsmith/blob/master/Changelog.txt
 
 
 # Mod files
-Gemsmith keeps all its files in the game's Local Store folder. It's located in `%AppData%/Roaming/com.giab.games.gcfw.steam/Local Store/Gemsmith` and it's generated on first launch.
+Gemsmith keeps all its files in the game's Local Store folder. It's located in `%AppData%\com.giab.games.gcfw.steam\Local Store\Gemsmith` and it's generated on first launch.
 
 That folder is referred to as **Gemsmith folder** in this readme.
 

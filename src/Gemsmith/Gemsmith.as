@@ -19,7 +19,7 @@ package Gemsmith
 	public class Gemsmith extends MovieClip
 	{
 		public const VERSION:String = "1.8";
-		public const GAME_VERSION:String = "1.0.19a";
+		public const GAME_VERSION:String = "1.0.20";
 		public const BEZEL_VERSION:String = "0.1.0";
 		public const MOD_NAME:String = "Gemsmith";
 		
@@ -72,7 +72,7 @@ package Gemsmith
 			this.infoPanelState = InfoPanelState.GEMSMITH;
 			this.updateAvailable = false;
 			
-			registerEventListeners();
+			addEventListeners();
 			
 			checkForUpdates();
 			
@@ -227,16 +227,17 @@ package Gemsmith
 		{
 			if(this.currentRecipeIndex == -1)
 				return;
+				
+			var gem:Object/*Gem*/ = this.core.controller.getGemUnderPointer(false);
+			if (!gem)
+				return;
+			
 			this.currentRecipeIndex += increment;
 			if(this.currentRecipeIndex < 0)
 				this.currentRecipeIndex = recipes.length - 1;
 			else if(this.currentRecipeIndex > recipes.length - 1)
 				this.currentRecipeIndex = 0;
-			var gem:Object/*Gem*/ = this.core.controller.getGemUnderPointer(false);
-			if(gem != null)
-			{
-				this.core.infoPanelRenderer2.renderInfoPanelGem(gem, gem.containingBuilding);
-			}
+			this.core.infoPanelRenderer2.renderInfoPanelGem(gem, gem.containingBuilding);
 		}
 
 		// Main method, this is called when pressing the hotkey
@@ -510,7 +511,7 @@ package Gemsmith
 		// 2 - Substitutes the KeyCode from Gemsmith_config.json
 		// Then it either lets the base game handler to run (so it then fires the function with the substituted KeyCode)
 		// or stops the base game's handler
-		public function eh_interceptKeyboardEvent(event: Object): void
+		private function eh_interceptKeyboardEvent(event: Object): void
 		{
 			var pE:KeyboardEvent = event.eventArgs.event;
 
@@ -526,14 +527,7 @@ package Gemsmith
 			}
 			else if(pE.keyCode == this.configuration["Hotkeys"]["Gemsmith: Perform combine"])
 			{
-				if (pE.controlKey && pE.altKey && pE.shiftKey)
-				{
-					SB.playSound("sndalert");
-					GV.vfxEngine.createFloatingText4(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Reloading mods!",16768392,14,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
-					this.core.inputHandler2.reloadMods();
-				event.eventArgs.continueDefault = false;
-				}
-				else if (pE.altKey)
+				if (pE.altKey)
 					reloadEverything();
 				else
 					castCombineOnMouse();
@@ -569,7 +563,7 @@ package Gemsmith
 		}
 
 		// Gemsmith adds its own tooltips in this method
-		public function eh_gemInfoPanelFormed(event:Object): void
+		private function eh_ingameGemInfoPanelFormed(event:Object): void
 		{
 			//logger.log("eh_GemInfoPanelFormed", "Responding to an event!");
 			var vIp:Object = event.eventArgs.infoPanel;
@@ -676,15 +670,30 @@ package Gemsmith
 			});
 			loader.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent): void {
 				logger.log("CheckForUpdates", "Caught an error when checking for updates!");
+				logger.log("CheckForUpdates", e.text);
 			});
 			
 			loader.load(request);
 		}
 		
-		private function registerEventListeners(): void
+		private function addEventListeners(): void
 		{
-			bezel.addEventListener("gemInfoPanelFormed", eh_gemInfoPanelFormed);
-			bezel.addEventListener("keyboardKeyDown", eh_interceptKeyboardEvent);
+			bezel.addEventListener("ingameGemInfoPanelFormed", eh_ingameGemInfoPanelFormed);
+			bezel.addEventListener("ingameKeyDown", eh_interceptKeyboardEvent);
+		}
+		
+		public function unload(): void
+		{
+			removeEventListeners();
+			bezel = null;
+			logger = null;
+			this.recipes = null;
+		}
+		
+		private function removeEventListeners(): void
+		{
+			bezel.removeEventListener("ingameGemInfoPanelFormed", eh_ingameGemInfoPanelFormed);
+			bezel.removeEventListener("ingameKeyDown", eh_interceptKeyboardEvent);
 		}
 	}
 }

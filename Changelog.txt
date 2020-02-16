@@ -39,3 +39,11 @@
 	Pressing DOT (Show/Hide info panels) now cycles through showing just the game's info panel, gemsmith's info panel, or off
 	Recipes are now sorted by name
 	Added automatic update checking. Opt-out is available in the config!
+	
+15.02.2020 v1.8 for 1.0.20
+	Updated to 1.0.20.
+	The mod now depends on BezelModLoader to work.
+	Fixed the exception when trying to check for updates with no internet.
+	Recipes are no longer cycled if you're not hovering over a gem.
+	
+	
