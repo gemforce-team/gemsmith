@@ -46,5 +46,7 @@
 	This also means that as long as there were no significant changes to the game or Bezel, a given Gemsmith swf should work on any game version.
 	Fixed the exception when trying to check for updates with no internet.
 	Recipes are no longer cycled if you're not hovering over a gem.
-	
+20.02.2020 v1.9 for 1.0.20c
+	Fixed the version checking bug.
+	Added gemforce recipes to the release.
 	

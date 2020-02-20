@@ -18,8 +18,8 @@ package Gemsmith
 	// The loader also requires a parameterless constructor (AFAIK), so we also have a .Bind method to bind our class to the game
 	public class Gemsmith extends MovieClip
 	{
-		public const VERSION:String = "1.8";
-		public const GAME_VERSION:String = "1.0.20a";
+		public const VERSION:String = "1.9";
+		public const GAME_VERSION:String = "1.0.20c";
 		public const BEZEL_VERSION:String = "0.1.0";
 		public const MOD_NAME:String = "Gemsmith";
 		
@@ -664,7 +664,7 @@ package Gemsmith
 			
 			loader.addEventListener(Event.COMPLETE, function(e:Event): void {
 				var latestTag:Object = JSON.parse(loader.data).tag_name;
-				var latestVersion:String = latestTag.replace(/[v]/gim, ' ').split('-')[0];
+				var latestVersion:String = latestTag.replace(/[v]/gim, '').split('-')[0];
 				localThis.updateAvailable = (latestVersion != VERSION);
 				logger.log("CheckForUpdates", localThis.updateAvailable ? "Update available! " + latestTag : "Using the latest version: " + latestTag);
 			});
