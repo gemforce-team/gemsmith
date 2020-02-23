@@ -27,7 +27,7 @@ That folder is referred to as **Gemsmith folder** in this readme.
 
 * Gemsmith also includes a configuration file that allows you to rebind hotkeys. This includes both Gemsmith's own functions and base game's hotkeys.
 
-* Press Alt + "Perform combine" hotkey to **reload your config and recipes**.
+* Press Alt + `Perform combine` hotkey to **reload your config and recipes**.
 
 * Gemsmith keeps a log of the last session in `%AppData%\com.giab.games.gcfw.steam\Local Store\Bezel Mod Loader\Bezel_log.log`. If you see a floating message saying that an error has occured, there might be more information in there.
 
@@ -35,9 +35,9 @@ That folder is referred to as **Gemsmith folder** in this readme.
 
 
 ## Installing the mod
-### Important warning! Starting with v1.8 for 1.0.20a Gemsmith now depends on [Bezel Mod Loader](https://github.com/gemforce-team/BezelModLoader).
+### Important warning! Starting with v1.8 for 1.0.20a Gemsmith depends on [Bezel Mod Loader](https://github.com/gemforce-team/BezelModLoader).
 
-**To install the mod** grab a release (links below) for your game version. Copy `Gemsmith-x.x-for-y.y.y.swf` from the archive into the `Mods` folder in the game's folder (To navigate to the game's folder: rightclick the game in steam -> Manage -> Browse local files).
+**To install the mod** grab a release (links below) for your game version. Drop `Gemsmith-x.x-for-y.y.y.swf` into the `Mods` folder in the game's folder (To navigate to the game's folder: rightclick the game in steam -> Manage -> Browse local files).
 
 **If there is no `Mods` folder**, you need to first install Bezel Mod Loader (link above).
 
@@ -103,7 +103,7 @@ Recipes for GCFW are published at https://github.com/gemforce-team/gem-recipes. 
 ...(Extra lines omitted)
 ```
 , that is not a combine recipe.
-* Gemsmith releases now contain a `Gemforce recipes` folder with recipes from the repo above in it. Simply copy a file over to your `recipes` folder and reload recipes ingame to add it to your list.
+* Gemsmith releases now contain a `Gemforce recipes` archive with recipes from the repo above in it. Simply copy a file over to your `recipes` folder and reload recipes ingame to add it to your list.
 
 Alternatively, you can write your own recipes. Keep in mind that Gemsmith expects that the result will be a single gem obtained on the last step.
 
@@ -115,9 +115,9 @@ PageUp - previous recipe
 PageDown - next recipe
 Home - perform combine
 ```
-Those can be changed in Gemsmith_config.json located in your Gemsmith folder. Buttons are represented by KeyCodes, a reference is included in each release's archive: `Hotkey KeyCodes reference.txt`
+Those can be changed in Gemsmith_config.json located in your Gemsmith folder. Buttons are represented by KeyCodes, here's a reference: [Keycode reference](https://github.com/gemforce-team/gemsmith/blob/master/Hotkey%20KeyCodes%20reference.txt)
 
-After saving your changes, press Alt + `perform combine` ingame to reload your recipes and config.
+After saving your changes, press Alt + `Perform combine` ingame to reload your recipes and config.
 
 
 # Bug reports and feedback
