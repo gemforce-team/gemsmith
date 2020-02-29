@@ -18,19 +18,19 @@ package Gemsmith
 	// The loader also requires a parameterless constructor (AFAIK), so we also have a .Bind method to bind our class to the game
 	public class Gemsmith extends MovieClip
 	{
-		public const VERSION:String = "1.9";
-		public const GAME_VERSION:String = "1.0.20c";
+		public const VERSION:String = "1.10";
+		public const GAME_VERSION:String = "1.0.21";
 		public const BEZEL_VERSION:String = "0.1.0";
 		public const MOD_NAME:String = "Gemsmith";
 		
-		private var gameObjects:Object;
+		internal var gameObjects:Object;
 		
 		// Game object shortcuts
-		private var core:Object;/*IngameCore*/
-		private var cnt:Object;/*CntIngame*/
-		public var GV:Object;/*GV*/
-		public var SB:Object;/*SB*/
-		public var prefs:Object;/*Prefs*/
+		internal var core:Object;/*IngameCore*/
+		internal var cnt:Object;/*CntIngame*/
+		internal var GV:Object;/*GV*/
+		internal var SB:Object;/*SB*/
+		internal var prefs:Object;/*Prefs*/
 		
 		// Mod loader object
 		internal static var bezel:Object;
@@ -208,13 +208,18 @@ package Gemsmith
 			configStream.open(oldConfigFile, FileMode.WRITE);
 			configStream.writeUTFBytes(JSON.stringify(this.configuration, null, 2));
 			configStream.close();
+			
 			for(var name:String in this.defaultHotkeys)
 			{
 				if(!config["Hotkeys"][name])
 					config["Hotkeys"][name] = this.defaultHotkeys[name];
 			}
+			
 			if (config["Check for updates"] == null)
 				config["Check for updates"] = true;
+				
+			//if (config["Hotkeys"]["Gemsmith: Conjure gem"] == null)
+			//	config["Hotkeys"]["Gemsmith: Conjure gem"] = 89;
 				
 			var configFile:File = storage.resolvePath("Gemsmith/Gemsmith_config.json");
 			configStream.open(configFile, FileMode.WRITE);
@@ -362,6 +367,18 @@ package Gemsmith
 			}
 		}
 
+		public function conjureGemOnMouse(): void
+		{
+			var invSlot:int = this.core.calculator.findFirstEmptyInvSlot();
+			if (invSlot != -1)
+			{
+				var newGem:Object = conjureGem(this.currentRecipe(), 1, 1);
+				newGem.targetPriority = 4;
+				this.core.controller.placeGemIntoSlot(newGem, invSlot);
+				this.core.gems.push(newGem);
+			}
+		}
+		
 		// Worker method, this bypasses the game's tracking of mana expenditure
 		// Takes a recipe and performs the combine without using any inventory slots
 		private function performCombineFromRecipe(recipe: Recipe, sourceGem:Object/*Gem*/): Object
@@ -372,6 +389,9 @@ package Gemsmith
 			if(sourceGem == null)
 				return sourceGem;
 			
+			if (recipe == Recipe.emptyRecipe)
+				return sourceGem;
+				
 			var virtualInv: Array = new Array();
 			virtualInv[0] = sourceGem;
 			
@@ -433,7 +453,7 @@ package Gemsmith
 			return sourceGem;
 		}
 
-		// This is the main method, takes a gem, carefully performs the combine, returns the new gem
+		// Takes a gem, carefully performs the combine, returns the new gem
 		// Also handles gem bitmap creation
 		private function virtualCombineGem(recipe: Recipe, gem:Object/*Gem*/): Object
 		{
@@ -461,6 +481,23 @@ package Gemsmith
 			resultingGem.sd5_EnhancedOrTrapOrLantern.range.s(vRange5 * resultingGem.rangeRatio.g());
 
 			return resultingGem;
+		}
+		
+		// Creates a gem from scratch
+		public function conjureGem(recipe:Recipe, gemType:int, baseGrade:int = 0): Object
+		{
+			if (this.core.getMana() < this.core.gemCreatingBaseManaCosts[baseGrade])
+				return null;
+				
+			var baseGem:Object = this.core.creator.createGem(baseGrade, gemType, true, true);
+			this.core.changeMana( -this.core.gemCreatingBaseManaCosts[baseGrade], false, true);
+			var totalRecipeCost:Number = totalCombineCost(recipe, baseGem);
+			if (this.core.getMana() < totalRecipeCost)
+				return baseGem;
+				
+			baseGem = virtualCombineGem(recipe, baseGem);
+			this.core.changeMana( -totalRecipeCost, false, true);
+			return baseGem;
 		}
 		
 		// A helper method for summing two gems' component costs
@@ -493,6 +530,19 @@ package Gemsmith
 				return this.recipes[this.currentRecipeIndex];
 			else
 				return Recipe.emptyRecipe;
+		}
+		
+		public function getRecipeByName(name: String): Recipe
+		{
+			for each(var rec:Recipe in this.recipes)
+			{
+				if (rec.name == name)
+				{
+					return rec;
+					break;
+				}
+			}
+			return Recipe.emptyRecipe;
 		}
 		
 		public function totalCombineCostCurrent(sourceGem:Object/*Gem*/): Number
@@ -533,6 +583,11 @@ package Gemsmith
 					castCombineOnMouse();
 				event.eventArgs.continueDefault = false;
 			}
+			/*else if(pE.keyCode == this.configuration["Hotkeys"]["Gemsmith: Conjure gem"])
+			{
+				conjureGemOnMouse();
+				event.eventArgs.continueDefault = false;
+			}*/
 			else if(pE.keyCode == this.configuration["Hotkeys"]["Show/hide info panels"])
 			{
 				if (this.infoPanelState == InfoPanelState.HIDDEN)
