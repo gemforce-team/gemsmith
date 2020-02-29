@@ -49,4 +49,5 @@
 20.02.2020 v1.9 for 1.0.20c
 	Fixed the version checking bug.
 	Added gemforce recipes to the release.
-	
+01.03.2020 v1.10 for 1.0.21
+	Added gem conjuration (API only, added for ManaMason but callable from anywhere)
