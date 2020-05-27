@@ -1,0 +1,2 @@
+Please copy whichever recipes you need to %Appdata%\com.giab.games.gcfw.steam\Local Store\Gemsmith\recipes.
+There shouldn't be any subfolders there, just a collection of .txt files. Rename as necessary!
