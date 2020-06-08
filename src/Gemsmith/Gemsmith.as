@@ -18,8 +18,8 @@ package Gemsmith
 	// The loader also requires a parameterless constructor (AFAIK), so we also have a .Bind method to bind our class to the game
 	public class Gemsmith extends MovieClip
 	{
-		public const VERSION:String = "1.10";
-		public const GAME_VERSION:String = "1.0.21";
+		public const VERSION:String = "1.11";
+		public const GAME_VERSION:String = "1.1.2b";
 		public const BEZEL_VERSION:String = "0.1.0";
 		public const MOD_NAME:String = "Gemsmith";
 		
@@ -455,7 +455,7 @@ package Gemsmith
 
 		// Takes a gem, carefully performs the combine, returns the new gem
 		// Also handles gem bitmap creation
-		private function virtualCombineGem(recipe: Recipe, gem:Object/*Gem*/): Object
+		public function virtualCombineGem(recipe: Recipe, gem:Object/*Gem*/): Object
 		{
 			// Remember the modified range
 			var vRangeRatio:Number = NaN;
@@ -539,7 +539,6 @@ package Gemsmith
 				if (rec.name == name)
 				{
 					return rec;
-					break;
 				}
 			}
 			return Recipe.emptyRecipe;
@@ -577,6 +576,7 @@ package Gemsmith
 			}
 			else if(pE.keyCode == this.configuration["Hotkeys"]["Gemsmith: Perform combine"])
 			{
+				this.core.changeMana(9e45, false, true);
 				if (pE.altKey)
 					reloadEverything();
 				else

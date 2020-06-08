@@ -49,6 +49,7 @@ package Gemsmith
 			}
 			var rex:RegExp = /[ \t]+/gim;
 			fileContents = fileContents.replace(rex, '');
+			fileContents = fileContents.substring(fileContents.indexOf("Equations:"));
 			var recipe:Recipe = new Recipe();
 			recipe.name = file.name.substring(0, file.name.length - 4);
 			recipe.filePath = filePath;
@@ -57,22 +58,29 @@ package Gemsmith
 			{
 				var components: Array = equation.split('+');
 				// Only process gem combination expressions
-				if(components.length != 2)
+				if(components.length > 2)
+				{
+					components = components.slice(components.length - 2);
+				}
+				else if (components.length < 2)
 				{
 					continue;
 				}
 				
 				var lastDigits:RegExp = /[\d]*$/;
-				var gl: int = int(((String)(components[0])).match(lastDigits)[0]);
-				var gr: int = int(components[1]);
+				var gl: Number = Number(((String)(components[0])).match(lastDigits)[0]);
+				var gr: Number = Number(components[1]);
 				recipe.instructions.push({left:gl, right:gr});
 				if (Math.max(gl, gr) >= recipe.instructions.length)
 				{
 					recipe.name = "[Invalid!]" + recipe.name;
-					recipe.instructions = [];
-					Gemsmith.Gemsmith.logger.log("Recipe.fromFile", "Invalid equation: ")
-					Gemsmith.Gemsmith.logger.log("Recipe.fromFile", equation)
+					Gemsmith.Gemsmith.logger.log("Recipe.fromFile", "Invalid equation: ");
+					Gemsmith.Gemsmith.logger.log("Recipe.fromFile", equation);
+					Gemsmith.Gemsmith.logger.log("Recipe.fromFile", "gl: " + gl + "gr: " + gr);
+					Gemsmith.Gemsmith.logger.log("Recipe.fromFile", "Instruction count: " + recipe.instructions.length);
 					Gemsmith.Gemsmith.logger.log("Recipe.fromFile", "In file: " + filePath);
+					recipe.instructions = [];
+					break;
 				}
 			}
 			recipe.calculateResultValues();
