@@ -576,7 +576,6 @@ package Gemsmith
 			}
 			else if(pE.keyCode == this.configuration["Hotkeys"]["Gemsmith: Perform combine"])
 			{
-				this.core.changeMana(9e45, false, true);
 				if (pE.altKey)
 					reloadEverything();
 				else
