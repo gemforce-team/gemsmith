@@ -1,10 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <project version="2">
   <!-- Output SWF options -->
   <output>
     <movie outputType="Application" />
     <movie input="" />
-    <movie path="C:\Games\Steam\steamapps\common\GemCraft Frostborn Wrath\Mods\Gemsmith-1.11-for-1.1.2b.swf" />
+    <movie path="bin\Gemsmith-1.12.swf" />
     <movie fps="30" />
     <movie width="1920" />
     <movie height="1080" />
@@ -56,7 +56,9 @@
   </libraryPaths>
   <!-- External Libraries -->
   <externalLibraryPaths>
-    <!-- example: <element path="..." /> -->
+    <element path="C:\Games\Steam\steamapps\common\GemCraft Frostborn Wrath\Mods\BezelModLoader.swc" />
+    <element path="C:\Games\Steam\steamapps\common\GemCraft Frostborn Wrath\GemCraft Frostborn Wrath.swc" />
+    <element path="C:\Games\Steam\steamapps\common\GemCraft Chasing Shadows\gc-cs-steam.swc" />
   </externalLibraryPaths>
   <!-- Runtime Shared Libraries -->
   <rslPaths>
@@ -72,7 +74,7 @@
   </library>
   <!-- Class files to compile (other referenced classes will automatically be included) -->
   <compileTargets>
-    <compile path="src\Gemsmith\Gemsmith.as" />
+    <compile path="src\Gemsmith\GemsmithMod.as" />
   </compileTargets>
   <!-- Paths to exclude from the Project Explorer tree -->
   <hiddenPaths>

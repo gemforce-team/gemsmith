@@ -43,8 +43,8 @@ package Gemsmith
 			catch(error:Error)
 			{
 				stream.close();
-				Gemsmith.Gemsmith.logger.log("Recipe.fromFile", error.message);
-				Gemsmith.Gemsmith.logger.log("Recipe.fromFile", "In file: " + filePath);
+				GemsmithMod.logger.log("Recipe.fromFile", error.message);
+				GemsmithMod.logger.log("Recipe.fromFile", "In file: " + filePath);
 				return emptyRecipe;
 			}
 			var rex:RegExp = /[ \t]+/gim;
@@ -74,11 +74,11 @@ package Gemsmith
 				if (Math.max(gl, gr) >= recipe.instructions.length)
 				{
 					recipe.name = "[Invalid!]" + recipe.name;
-					Gemsmith.Gemsmith.logger.log("Recipe.fromFile", "Invalid equation: ");
-					Gemsmith.Gemsmith.logger.log("Recipe.fromFile", equation);
-					Gemsmith.Gemsmith.logger.log("Recipe.fromFile", "gl: " + gl + "gr: " + gr);
-					Gemsmith.Gemsmith.logger.log("Recipe.fromFile", "Instruction count: " + recipe.instructions.length);
-					Gemsmith.Gemsmith.logger.log("Recipe.fromFile", "In file: " + filePath);
+					GemsmithMod.logger.log("Recipe.fromFile", "Invalid equation: ");
+					GemsmithMod.logger.log("Recipe.fromFile", equation);
+					GemsmithMod.logger.log("Recipe.fromFile", "gl: " + gl + "gr: " + gr);
+					GemsmithMod.logger.log("Recipe.fromFile", "Instruction count: " + recipe.instructions.length);
+					GemsmithMod.logger.log("Recipe.fromFile", "In file: " + filePath);
 					recipe.instructions = [];
 					break;
 				}
