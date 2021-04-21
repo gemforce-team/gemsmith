@@ -7,6 +7,7 @@ package Gemsmith
 	
 	import Bezel.Events.EventTypes;
 	import Bezel.Events.IngameGemInfoPanelFormedEvent;
+	import Bezel.Events.IngameKeyDownEvent;
 	
 	import com.giab.games.gcfw.GV;
 	import com.giab.games.gcfw.SB;
@@ -37,7 +38,6 @@ package Gemsmith
 		private var recipes:Array;
 		private var currentRecipeIndex:int;
 		private var configuration:Object;
-		private var defaultHotkeys:Object;
 		private var infoPanelState:int;
 		private var updateAvailable:Boolean;
 		
@@ -54,10 +54,11 @@ package Gemsmith
 			this.recipes = formRecipeList();
 			this.configuration = loadConfigurationOrDefault();
 			this.configuration = updateConfig(this.configuration);
-			this.defaultHotkeys = createDefaultConfiguration().Hotkeys;
 			this.infoPanelState = InfoPanelState.GEMSMITH;
 			this.updateAvailable = false;
 			
+			registerKeybinds();
+
 			addEventListeners();
 			
 			checkForUpdates();
@@ -134,7 +135,7 @@ package Gemsmith
 				}
 				configStream.close();
 
-				if(config == null || config["Hotkeys"] == null)
+				if(config == null)
 				{
 					config = createDefaultConfiguration();
 					GemsmithMod.logger.log("LoadConfiguration", "Configuration was invalid for some reason, using defaults");
@@ -146,41 +147,7 @@ package Gemsmith
 		private function createDefaultConfiguration(): Object
 		{
 			var config:Object = new Object();
-			config["Hotkeys"] = new Object();
-			config["Hotkeys"]["Throw gem bombs"] = 66;
-			config["Hotkeys"]["Build tower"] = 84;
-			config["Hotkeys"]["Build lantern"] = 76;
-			config["Hotkeys"]["Build pylon"] = 80;
-			config["Hotkeys"]["Build trap"] = 82;
-			config["Hotkeys"]["Build wall"] = 87;
-			config["Hotkeys"]["Combine gems"] = 71;
-			config["Hotkeys"]["Switch time speed"] = 81;
-			config["Hotkeys"]["Pause time"] = 32;
-			config["Hotkeys"]["Start next wave"] = 78;
-			config["Hotkeys"]["Destroy gem for mana"] = 88;
-			config["Hotkeys"]["Drop gem to inventory"] = 9;
-			config["Hotkeys"]["Duplicate gem"] = 68;
-			config["Hotkeys"]["Upgrade gem"] = 85;
-			config["Hotkeys"]["Show/hide info panels"] = 190;
-			config["Hotkeys"]["Cast freeze strike spell"] = 49;
-			config["Hotkeys"]["Cast whiteout strike spell"] = 50;
-			config["Hotkeys"]["Cast ice shards strike spell"] = 51;
-			config["Hotkeys"]["Cast bolt enhancement spell"] = 52;
-			config["Hotkeys"]["Cast beam enhancement spell"] = 53;
-			config["Hotkeys"]["Cast barrage enhancement spell"] = 54;
-			config["Hotkeys"]["Create Critical Hit gem"] = 100;
-			config["Hotkeys"]["Create Mana Leeching gem"] = 101;
-			config["Hotkeys"]["Create Bleeding gem"] = 102;
-			config["Hotkeys"]["Create Armor Tearing gem"] = 97;
-			config["Hotkeys"]["Create Poison gem"] = 98;
-			config["Hotkeys"]["Create Slowing gem"] = 99;
-			config["Hotkeys"]["Gemsmith: Cycle selected recipe left"] = 33;
-			config["Hotkeys"]["Gemsmith: Perform combine"] = 36;
-			config["Hotkeys"]["Gemsmith: Cycle selected recipe right"] = 34;
-			config["Hotkeys"]["Up arrow function"] = 38;
-			config["Hotkeys"]["Down arrow function"] = 40;
-			config["Hotkeys"]["Left arrow function"] = 37;
-			config["Hotkeys"]["Right arrow function"] = 39;
+			config["Check for updates"] = true;
 
 			return config;
 		}
@@ -194,17 +161,11 @@ package Gemsmith
 			configStream.writeUTFBytes(JSON.stringify(this.configuration, null, 2));
 			configStream.close();
 			
-			for(var name:String in this.defaultHotkeys)
-			{
-				if(!config["Hotkeys"][name])
-					config["Hotkeys"][name] = this.defaultHotkeys[name];
-			}
+			if (config["Hotkeys"] != null)
+				delete config["Hotkeys"];
 			
 			if (config["Check for updates"] == null)
 				config["Check for updates"] = true;
-				
-			//if (config["Hotkeys"]["Gemsmith: Conjure gem"] == null)
-			//	config["Hotkeys"]["Gemsmith: Conjure gem"] = 89;
 				
 			var configFile:File = storage.resolvePath("Gemsmith/Gemsmith_config.json");
 			configStream.open(configFile, FileMode.WRITE);
@@ -543,21 +504,21 @@ package Gemsmith
 		// 2 - Substitutes the KeyCode from Gemsmith_config.json
 		// Then it either lets the base game handler to run (so it then fires the function with the substituted KeyCode)
 		// or stops the base game's handler
-		private function eh_interceptKeyboardEvent(event: Object): void
+		private function eh_interceptKeyboardEvent(event:IngameKeyDownEvent): void
 		{
 			var pE:KeyboardEvent = event.eventArgs.event;
 
-			if(pE.keyCode == this.configuration["Hotkeys"]["Gemsmith: Cycle selected recipe left"])
+			if(pE.keyCode == GemsmithMod.bezel.mainLoader.getHotkeyValue("Gemsmith: Cycle selected recipe left"))
 			{
 				cycleSelectedRecipe(-1);
 				event.eventArgs.continueDefault = false;
 			}
-			else if(pE.keyCode == this.configuration["Hotkeys"]["Gemsmith: Cycle selected recipe right"])
+			else if(pE.keyCode == GemsmithMod.bezel.mainLoader.getHotkeyValue("Gemsmith: Cycle selected recipe right"))
 			{
 				cycleSelectedRecipe(1);
 				event.eventArgs.continueDefault = false;
 			}
-			else if(pE.keyCode == this.configuration["Hotkeys"]["Gemsmith: Perform combine"])
+			else if(pE.keyCode == GemsmithMod.bezel.mainLoader.getHotkeyValue("Gemsmith: Perform combine"))
 			{
 				if (pE.altKey)
 					reloadEverything();
@@ -565,12 +526,12 @@ package Gemsmith
 					castCombineOnMouse();
 				event.eventArgs.continueDefault = false;
 			}
-			/*else if(pE.keyCode == this.configuration["Hotkeys"]["Gemsmith: Conjure gem"])
+			/*else if(pE.keyCode == GemsmithMod.bezel.mainLoader.getHotkeyValue("Gemsmith: Conjure gem"))
 			{
 				conjureGemOnMouse();
 				event.eventArgs.continueDefault = false;
 			}*/
-			else if(pE.keyCode == this.configuration["Hotkeys"]["Show/hide info panels"])
+			else if(pE.keyCode == GemsmithMod.bezel.mainLoader.getHotkeyValue("Show/hide info panels"))
 			{
 				if (this.infoPanelState == InfoPanelState.HIDDEN)
 				{
@@ -586,25 +547,14 @@ package Gemsmith
 					this.infoPanelState = InfoPanelState.HIDDEN;
 				}
 			}
-			else
-			{
-				for(var name:String in this.defaultHotkeys)
-				{
-					if(this.defaultHotkeys[name] == pE.keyCode)
-					{
-						pE.keyCode = this.configuration["Hotkeys"][name] || 0;
-						break;
-					}
-				}
-			} 
 		}
 
 		// Gemsmith adds its own tooltips in this method
 		private function eh_ingameGemInfoPanelFormed(event:IngameGemInfoPanelFormedEvent): void
 		{
 			//GemsmithMod.logger.log("eh_GemInfoPanelFormed", "Responding to an event!");
-			var vIp:McInfoPanel = event.eventArgs.infoPanel;
-			var gem:Gem = event.eventArgs.gem;
+			var vIp:McInfoPanel = event.eventArgs.infoPanel as McInfoPanel;
+			var gem:Gem = event.eventArgs.gem as Gem;
 			var numberFormatter:Object = event.eventArgs.numberFormatter;
 			if (this.infoPanelState == InfoPanelState.GEMSMITH)
 			{
@@ -725,5 +675,14 @@ package Gemsmith
 			GemsmithMod.bezel.removeEventListener(EventTypes.INGAME_GEM_INFO_PANEL_FORMED, eh_ingameGemInfoPanelFormed);
 			GemsmithMod.bezel.removeEventListener(EventTypes.INGAME_KEY_DOWN, eh_interceptKeyboardEvent);
 		}
+		
+		private function registerKeybinds(): void
+		{
+			GemsmithMod.bezel.mainLoader.registerHotkey("Gemsmith: Cycle selected recipe left", 33);
+			GemsmithMod.bezel.mainLoader.registerHotkey("Gemsmith: Perform combine", 36);
+			GemsmithMod.bezel.mainLoader.registerHotkey("Gemsmith: Cycle selected recipe right", 34);
+			// GemsmithMod.bezel.mainLoader.registerHotkey("Gemsmith: Conjure gem", 89);
+		}
+		
 	}
 }
