@@ -490,30 +490,32 @@ package Gemsmith
 		{
 			var pE:KeyboardEvent = event.eventArgs.event;
 
-			if(pE.keyCode == GemsmithMod.bezel.mainLoader.getHotkeyValue("Gemsmith: Cycle selected recipe left"))
+			if(GemsmithMod.bezel.keybindManager.getHotkeyValue("Gemsmith: Cycle selected recipe left").matches(pE))
 			{
 				cycleSelectedRecipe(-1);
 				event.eventArgs.continueDefault = false;
 			}
-			else if(pE.keyCode == GemsmithMod.bezel.mainLoader.getHotkeyValue("Gemsmith: Cycle selected recipe right"))
+			else if(GemsmithMod.bezel.keybindManager.getHotkeyValue("Gemsmith: Cycle selected recipe right").matches(pE))
 			{
 				cycleSelectedRecipe(1);
 				event.eventArgs.continueDefault = false;
 			}
-			else if(pE.keyCode == GemsmithMod.bezel.mainLoader.getHotkeyValue("Gemsmith: Perform combine"))
+			else if(GemsmithMod.bezel.keybindManager.getHotkeyValue("Gemsmith: Perform combine").matches(pE))
 			{
-				if (pE.altKey)
-					reloadEverything();
-				else
-					castCombineOnMouse();
+				castCombineOnMouse();
 				event.eventArgs.continueDefault = false;
 			}
-			/*else if(pE.keyCode == GemsmithMod.bezel.mainLoader.getHotkeyValue("Gemsmith: Conjure gem"))
+			else if (GemsmithMod.bezel.keybindManager.getHotkeyValue("Gemsmith: Reload recipes").matches(pE))
+			{
+				reloadEverything();
+				event.eventArgs.continueDefault = false;
+			}
+			/*else if(pE.keyCode == GemsmithMod.bezel.keybindManager.getHotkeyValue("Gemsmith: Conjure gem"))
 			{
 				conjureGemOnMouse();
 				event.eventArgs.continueDefault = false;
 			}*/
-			else if(pE.keyCode == GemsmithMod.bezel.mainLoader.getHotkeyValue("Show/hide info panels"))
+			else if(GemsmithMod.bezel.keybindManager.getHotkeyValue("Show/hide info panels").matches(pE))
 			{
 				if (this.infoPanelState == InfoPanelState.HIDDEN)
 				{
@@ -522,7 +524,7 @@ package Gemsmith
 				else if (this.infoPanelState == InfoPanelState.BASEGAME)
 				{
 					this.infoPanelState = InfoPanelState.GEMSMITH;
-				event.eventArgs.continueDefault = false;
+					event.eventArgs.continueDefault = false;
 				}
 				else
 				{
@@ -660,9 +662,11 @@ package Gemsmith
 		
 		private function registerKeybinds(): void
 		{
-			GemsmithMod.bezel.mainLoader.registerHotkey("Gemsmith: Cycle selected recipe left", 33);
-			GemsmithMod.bezel.mainLoader.registerHotkey("Gemsmith: Perform combine", 36);
-			GemsmithMod.bezel.mainLoader.registerHotkey("Gemsmith: Cycle selected recipe right", 34);
+			GemsmithMod.bezel.keybindManager.registerHotkey("Gemsmith: Cycle selected recipe left", new Keybind(33));
+			GemsmithMod.bezel.keybindManager.registerHotkey("Gemsmith: Perform combine", new Keybind(36));
+			GemsmithMod.bezel.keybindManager.registerHotkey("Gemsmith: Cycle selected recipe right", new Keybind(34));
+			GemsmithMod.bezel.keybindManager.registerHotkey("Gemsmith: Reload recipes", new Keybind(36, false, true, false));
+			// GemsmithMod.bezel.keybindManager.registerHotkey("Gemsmith: Conjure gem", 89);
 		}
 	}
 }
