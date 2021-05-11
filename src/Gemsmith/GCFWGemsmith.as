@@ -681,10 +681,10 @@ package Gemsmith
 		
 		private function registerKeybinds(): void
 		{
-			GemsmithMod.bezel.keybindManager.registerHotkey("Gemsmith: Cycle selected recipe left", new Keybind(33));
-			GemsmithMod.bezel.keybindManager.registerHotkey("Gemsmith: Perform combine", new Keybind(36));
-			GemsmithMod.bezel.keybindManager.registerHotkey("Gemsmith: Cycle selected recipe right", new Keybind(34));
-			GemsmithMod.bezel.keybindManager.registerHotkey("Gemsmith: Reload recipes", new Keybind(36, false, true, false));
+			GemsmithMod.bezel.keybindManager.registerHotkey("Gemsmith: Cycle selected recipe left", new Keybind("page_up"));
+			GemsmithMod.bezel.keybindManager.registerHotkey("Gemsmith: Perform combine", new Keybind("home"));
+			GemsmithMod.bezel.keybindManager.registerHotkey("Gemsmith: Cycle selected recipe right", new Keybind("page_down"));
+			GemsmithMod.bezel.keybindManager.registerHotkey("Gemsmith: Reload recipes", new Keybind("alt+home"));
 			// GemsmithMod.bezel.keybindManager.registerHotkey("Gemsmith: Conjure gem", 89);
 		}
 		
