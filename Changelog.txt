@@ -46,11 +46,19 @@
 	This also means that as long as there were no significant changes to the game or Bezel, a given Gemsmith swf should work on any game version.
 	Fixed the exception when trying to check for updates with no internet.
 	Recipes are no longer cycled if you're not hovering over a gem.
+	
 20.02.2020 v1.9 for 1.0.20c
 	Fixed the version checking bug.
 	Added gemforce recipes to the release.
+	
 01.03.2020 v1.10 for 1.0.21
 	Added gem conjuration (API only, added for ManaMason but callable from anywhere)
+	
 08.06.2020 v1.11 for 1.1.2b
 	VirtualCombineGem is now public. That means you can get a reference to Gemsmith from Bezel, then pass it a gem object and a recipe, it performs the combine and returns the new gem object.
 	Fixed recipe parsing to handle extremely large combines.
+
+22.05.2021 v1.12-prerelease
+	Update by piepie62, Gemsmith now depends on Bezel 1.0.0 and as a result is compatible with both GCCS and GCFW.
+	Also now has proper types instead of Object types everywhere.
+	Hotkeys are now handled by Bezel.
