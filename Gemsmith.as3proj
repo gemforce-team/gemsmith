@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <project version="2">
   <!-- Output SWF options -->
   <output>
@@ -56,9 +56,9 @@
   </libraryPaths>
   <!-- External Libraries -->
   <externalLibraryPaths>
+    <element path="src\GCCS.swc" />
+    <element path="src\GCFW.swc" />
     <element path="C:\Games\Steam\steamapps\common\GemCraft Frostborn Wrath\Mods\BezelModLoader.swc" />
-    <element path="C:\Games\Steam\steamapps\common\GemCraft Frostborn Wrath\GemCraft Frostborn Wrath.swc" />
-    <element path="C:\Games\Steam\steamapps\common\GemCraft Chasing Shadows\gc-cs-steam.swc" />
   </externalLibraryPaths>
   <!-- Runtime Shared Libraries -->
   <rslPaths>

@@ -22,6 +22,7 @@ package Gemsmith
 		internal static var bezel:Bezel;
 		internal static var logger:Logger;
 		internal static var instance:GemsmithMod;
+		internal static var gameObjects:Object;
 
 		public static const GCFW_VERSION:String = "1.2.1a";
 		public static const GCCS_VERSION:String = "1.0.6";
@@ -33,10 +34,11 @@ package Gemsmith
 		}
 		
 		// This method binds the class to the game's objects
-		public function bind(modLoader:Bezel, gameObjects:Object):void
+		public function bind(modLoader:Bezel, gObjects:Object):void
 		{
 			bezel = modLoader;
 			logger = bezel.getLogger("Gemsmith");
+			gameObjects = gObjects;
 			if (bezel.mainLoader is GCFWBezel)
 			{
 				gemsmith = new GCFWGemsmith();

@@ -19,6 +19,8 @@ package Gemsmith
 		public var gradeIncrease:Number;
 		public var value:Number;
 		public var combines:Number;
+		public var type:String;
+		public var seedGems:Object;
 		
 		private static var _emptyRecipe:Recipe;
 		
@@ -49,33 +51,74 @@ package Gemsmith
 			}
 			var rex:RegExp = /[ \t]+/gim;
 			fileContents = fileContents.replace(rex, '');
-			fileContents = fileContents.substring(fileContents.indexOf("Equations:"));
 			var recipe:Recipe = new Recipe();
 			recipe.name = file.name.substring(0, file.name.length - 4);
 			recipe.filePath = filePath;
 			recipe.instructions = new Array();
-			for each(var equation: String in fileContents.split('\n'))
+			
+			var equationsIndex: Number = fileContents.indexOf("Equations:");
+			if (equationsIndex == -1)
 			{
-				var components: Array = equation.split('+');
-				// Only process gem combination expressions
-				if(components.length > 2)
+				recipe.type = "Spec";
+				recipe.seedGems = new Object();
+				equationsIndex = fileContents.indexOf("equations:") + 12;
+				fileContents = fileContents.substring(equationsIndex);
+				equationsIndex = fileContents.indexOf("equations:") + 12;
+				fileContents = fileContents.substring(0, equationsIndex);
+			}
+			else
+			{
+				fileContents = fileContents.substring(equationsIndex + 12);
+			}
+			var equations: Array = fileContents.split('\n');
+			if (recipe.type == "Combine")
+			{
+				equations.pop();
+				equations.pop();
+			}
+			else if (recipe.type == "Spec")
+			{
+				equations.pop();
+			}
+			
+			for(var equation: String in equations)
+			{
+				var components: Array = equations[equation].split(')');
+				if (components.length != 2)
 				{
-					components = components.slice(components.length - 2);
+					break;
 				}
-				else if (components.length < 2)
+				
+				var comp: String = (String)(components[1]);
+				var opIndex: Number = comp.split("=")[0];
+				if (recipe.type == "Combine")
 				{
-					continue;
+					if (comp.indexOf("g1") != -1)
+						if(opIndex == 0)
+							continue;
+						else
+							break;
+					components = (String)(components[1]).split("+");
+				}
+				else if (recipe.type == "Spec")
+				{
+					if (comp.indexOf("g1") != -1)
+					{
+						recipe.seedGems[opIndex] = comp.split("g1")[1];
+						continue;
+					}
+					components = comp.split("+");
 				}
 				
 				var lastDigits:RegExp = /[\d]*$/;
 				var gl: Number = Number(((String)(components[0])).match(lastDigits)[0]);
 				var gr: Number = Number(components[1]);
-				recipe.instructions.push({left:gl, right:gr});
-				if (Math.max(gl, gr) >= recipe.instructions.length)
+				recipe.instructions[opIndex] = {left:gl, right:gr};
+				if (Math.max(gl, gr) >= (Number)(equation))
 				{
 					recipe.name = "[Invalid!]" + recipe.name;
 					GemsmithMod.logger.log("Recipe.fromFile", "Invalid equation: ");
-					GemsmithMod.logger.log("Recipe.fromFile", equation);
+					GemsmithMod.logger.log("Recipe.fromFile", equation[equation]);
 					GemsmithMod.logger.log("Recipe.fromFile", "gl: " + gl + "gr: " + gr);
 					GemsmithMod.logger.log("Recipe.fromFile", "Instruction count: " + recipe.instructions.length);
 					GemsmithMod.logger.log("Recipe.fromFile", "In file: " + filePath);
@@ -92,6 +135,7 @@ package Gemsmith
 		function Recipe() 
 		{
 			this.name = "No recipe";
+			this.type = "Combine";
 			this.filePath = "";
 			this.instructions = [];
 			this.gradeIncrease = NaN;
@@ -107,20 +151,31 @@ package Gemsmith
 			var stepGrades: Array = new Array();
 			var stepValues: Array = new Array();
 			var stepCombines: Array = new Array();
+			if (this.type == "Spec")
+			{
+				for (var step: String in this.seedGems)
+				{
+					stepCombines[step] = 0;
+					stepValues[step] = 1;
+					stepGrades[step] = 1;
+				}
+			}
 			stepCombines[0] = 0;
 			stepValues[0] = 1;
 			stepGrades[0] = 1;
 			var newGrade: Number = stepGrades[0];
-			for each(var instr: Object in this.instructions)
+			var instrindex: String;
+			for(instrindex in this.instructions)
 			{
+				var instr: Object = this.instructions[instrindex];
 				newGrade = (stepGrades[instr.left] == stepGrades[instr.right]) ? (stepGrades[instr.left] + 1) : Math.max(stepGrades[instr.left], stepGrades[instr.right]);
-				stepGrades.push(newGrade);
-				stepValues.push(stepValues[instr.left] + stepValues[instr.right]);
-				stepCombines.push(stepCombines[instr.left] + stepCombines[instr.right] + 1);
+				stepGrades[instrindex] = newGrade;
+				stepValues[instrindex] = stepValues[instr.left] + stepValues[instr.right];
+				stepCombines[instrindex] = stepCombines[instr.left] + stepCombines[instr.right] + 1;
 			}
-			this.gradeIncrease = stepGrades.pop() - stepGrades[0];
-			this.value = stepValues.pop();
-			this.combines = stepCombines.pop();
+			this.gradeIncrease = stepGrades[instrindex] - stepGrades[0];
+			this.value = stepValues[instrindex];
+			this.combines = stepCombines[instrindex];
 		}
 	}
 
