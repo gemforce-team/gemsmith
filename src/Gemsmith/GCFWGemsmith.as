@@ -683,7 +683,6 @@ package Gemsmith
 				eRFStream.writeUTFBytes("Equations:\r\n(val=1)0=g1k\r\n(val=2)1=0+0\r\n(val=3)2=1+0\r\n(val=4)3=2+0\r\n(val=6)4=3+1\r\n(val=8)5=4+1\r\n\r\nkc000008-gemforcev2.0.0-table_kgcexact");
 				eRFStream.close();
 			}
-			GemsmithMod.logger.log("PrepareFolders", "Moved ./FWGC to trash!");
 		}
 		
 		public function reloadEverything(): void
