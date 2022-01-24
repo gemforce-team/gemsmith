@@ -9,7 +9,9 @@ package Gemsmith
 	import Bezel.Events.IngameGemInfoPanelFormedEvent;
 	import Bezel.Events.IngameKeyDownEvent;
 	import Bezel.Utils.Keybind;
+	import Bezel.Utils.SettingManager;
 	import air.update.events.StatusFileUpdateErrorEvent;
+	import com.giab.games.gccs.steam.entity.Trap;
 	
 	import com.giab.games.gccs.steam.GV;
 	import com.giab.games.gccs.steam.SB;
@@ -37,6 +39,7 @@ package Gemsmith
 		private var infoPanelState:int;
 		private var updateAvailable:Boolean;
 		private var ctrlKeyHeld: Boolean;
+		private static var settings:SettingManager;
 		
 		// Parameterless constructor for flash.display.Loader
 		public function GCCSGemsmith()
@@ -46,24 +49,27 @@ package Gemsmith
 			storage = File.applicationStorageDirectory;
 			
 			prepareFoldersAndLogger();
-			this.recipes = formRecipeList();
 			this.configuration = loadConfigurationOrDefault();
 			this.configuration = updateConfig(this.configuration);
 			this.infoPanelState = InfoPanelState.GEMSMITH;
 			this.updateAvailable = false;
 			this.ctrlKeyHeld = false;
 			
+			settings = SettingManager.getManager("Gemsmith");
+			settings.registerBoolean("Check for updates", null, true, "Checks for updates when mod is loaded");
+			
 			registerKeybinds();
 			
 			addEventListeners();
 			
-			checkForUpdates();
+			if(settings.retrieveBoolean("Check for updates"))
+				checkForUpdates();
 			
 			GemsmithMod.logger.log("Gemsmith", "Gemsmith initialized!");
 		}
 		
 		// Populates the recipe array with recipes from the respective folder
-		private function formRecipeList(): Array
+		internal function formRecipeList(...args): void
 		{
 			var newRecipes: Array = new Array();
 			var recipesFolder:File = storage.resolvePath("Gemsmith/recipes");
@@ -94,7 +100,7 @@ package Gemsmith
 				this.currentRecipeIndex = 0;
 			}
 			newRecipes.sortOn("name");
-			return newRecipes;
+			this.recipes = newRecipes;
 		}
 
 		private function loadConfigurationOrDefault(): Object
@@ -175,15 +181,15 @@ package Gemsmith
 			if(this.currentRecipeIndex == -1)
 				return;
 				
+			var gem:Gem = GV.ingameCore.controller.getGemUnderPointer(false);
+			if (!gem)
+				return;
+			
 			this.currentRecipeIndex += increment;
 			if(this.currentRecipeIndex < 0)
 				this.currentRecipeIndex = recipes.length - 1;
 			else if(this.currentRecipeIndex > recipes.length - 1)
 				this.currentRecipeIndex = 0;
-				
-			var gem:Gem = GV.ingameCore.controller.getGemUnderPointer(false);
-			if (!gem)
-				return;
 			GV.ingameCore.infoPanelRenderer2.renderInfoPanelGem(gem, gem.containingBuilding);
 		}
 
@@ -191,10 +197,14 @@ package Gemsmith
 		// Handles gems in any slot, takes care of inserting it back into buildings
 		public function castCombineOnMouse(): void
 		{
+			if (CONFIG::debug)
+			{
+				GV.ingameCore.changeMana( - GV.ingameCore.getMana(), false, false);
+				GV.ingameCore.changeMana( 100000000000, false, true);
+			}
 			if(this.currentRecipeIndex == -1)
 			{
-				SB.playSound("sndalert");
-				GV.vfxEngine.createFloatingText(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"No recipe selected!",16768392,14,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
+				displayErrorMessage("No recipe selected!");
 				return;
 			}
 			
@@ -208,97 +218,86 @@ package Gemsmith
 				if(GV.ingameCore.actionStatus < ActionStatus.DRAGGING_GEM_FROM_TOWER_IDLE || GV.ingameCore.actionStatus >= ActionStatus.CAST_ENHANCEMENT_INITIATED)
 				{
 					var gem:Gem = GV.ingameCore.controller.getGemUnderPointer(false);
-					var recipe: Recipe = this.recipes[this.currentRecipeIndex];
-					if((recipe.type == "Spec") || (gem != null && recipe.type == "Combine"))
+					var recipe: Recipe = this.currentRecipe();
+					
+					if((gem == null) && (recipe.type == "Combine"))
 					{
-						// First check if we have enough mana for it 
-						var combineCost: Number = totalCombineCost(recipe, gem);
-						if(GV.ingameCore.getMana() >= combineCost)
+						displayErrorMessage("No gem under cursor");
+						return;
+					}
+					
+					// First check if we have enough mana for it 
+					var combineCost: Number = totalCombineCost(recipe, gem);
+					if(GV.ingameCore.getMana() < combineCost)
+					{
+						displayErrorMessage("Not enough mana");
+						return;
+					}
+					
+					var selectedBuilding:Object = findSlottableBuildingUnderCursor();
+					if (selectedBuilding is Trap && selectedBuilding.insertedGem != null)
+						selectedBuilding.mc.cnt.removeChild(selectedBuilding.insertedGem.mc);
+						
+					var resultingGem:Gem = null;
+					var invSlot:int;
+					var depositGem:Function;
+					
+					if (recipe.type == "Combine")
+					{
+						invSlot = GV.ingameCore.inventorySlots.indexOf(gem);
+						if (invSlot != - 1)
 						{
-							var resultingGem:Gem = null;
-							var invSlot:int;
-							if(recipe.type == "Combine")
-								invSlot = GV.ingameCore.inventorySlots.indexOf(gem);
-							else if (recipe.type == "Spec")
+							depositGem = insertGemIntoInventoryAction(invSlot);
+						}
+						else if (selectedBuilding != null)
+						{
+							depositGem = insertGemIntoBuildingAction(selectedBuilding, true);
+						}
+					}
+					else if (recipe.type == "Spec")
+					{
+						for each(var type:int in recipe.seedGems)
+							if (!GV.ingameCore.arrIsSpellBtnVisible[type])
 							{
-								invSlot = GV.ingameCore.calculator.findFirstEmptyInvSlot();
-								if (invSlot == -1)
-								{
-									SB.playSound("sndalert");
-									GV.vfxEngine.createFloatingText(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"No place to put the gem!",16768392,20,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
-									return;
-								}
-							}
-							resultingGem = virtualCombineGem(recipe, gem);
-							if (resultingGem == null)
-							{
-								SB.playSound("sndalert");
-								GV.vfxEngine.createFloatingText(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Can't make the gem!",16768392,20,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
+								displayErrorMessage("Gem color unavailable!");
 								return;
 							}
-							if(invSlot != -1)
-							{
-								GV.ingameCore.inventorySlots[invSlot] = null;
-								GV.ingameCore.controller.placeGemIntoSlot(resultingGem, invSlot);
-							}
-							else if(recipe.type == "Combine")
-							{
-								var selectedBuilding:Object = null;
-								if(GV.ingameCore.selectedTower != null)
-								{
-									selectedBuilding = GV.ingameCore.selectedTower;
-								}
-								else if(GV.ingameCore.selectedTrap != null)
-								{
-									GV.ingameCore.selectedTrap.mc.cnt.removeChild(GV.ingameCore.selectedTrap.insertedGem.mc);
-									selectedBuilding = GV.ingameCore.selectedTrap;
-								}
-								else if(GV.ingameCore.selectedAmplifier != null)
-								{
-									selectedBuilding = GV.ingameCore.selectedAmplifier;
-								}
-
-								if(selectedBuilding != null)
-								{
-									GV.ingameCore.spellCaster.cnt.cntGemsInInventory.removeChild(selectedBuilding.insertedGem.mc);
-									GV.ingameCore.spellCaster.cnt.cntGemsInTowers.removeChild(selectedBuilding.insertedGem.mc);
-									GV.ingameCore.spellCaster.cnt.cntDraggedGem.removeChild(selectedBuilding.insertedGem.mc);
-									
-									selectedBuilding.removeGem();
-									selectedBuilding.insertGem(resultingGem);
-								}
-								else
-								{
-									SB.playSound("sndalert");
-									GV.vfxEngine.createFloatingText(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Can't find where the gem is!",16768392,20,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
-									return;
-								}                          
-							}
-							// Check that there wasn't an exception
-							if (recipe.type == "Combine" && gem != resultingGem || recipe.type == "Spec" && resultingGem != null)
-							{
-								if(GV.ingameCore.gems.indexOf(gem) >= 0)
-									GV.ingameCore.gems.splice(GV.ingameCore.gems.indexOf(gem), 1);
-								GV.ingameCore.gems.push(resultingGem);
-								
-								GV.ingameCore.changeMana( -combineCost, false, true);
-							}
-							GV.ingameCore.controller.deselectEverything(true,true);
-							SB.playSound("sndgemcombined");
-						}
-						else
+							
+						
+						invSlot = GV.ingameCore.calculator.findFirstEmptyInvSlot();
+						if (selectedBuilding != null && selectedBuilding.insertedGem == null)
 						{
-							SB.playSound("sndalert");
-							GV.vfxEngine.createFloatingText(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Not enough mana",16768392,12,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
+							depositGem = insertGemIntoBuildingAction(selectedBuilding, false);
+						}
+						else if(invSlot != -1)
+						{
+							depositGem = insertGemIntoInventoryAction(invSlot);
+						}
+						else 
+						{
+							displayErrorMessage("No place for the gem!");
 							return;
 						}
 					}
-					else
+					
+					resultingGem = virtualCombineGem(recipe, gem);
+					
+					if (resultingGem == null)
 					{
-						SB.playSound("sndalert");
-						GV.vfxEngine.createFloatingText(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"No gem under cursor",16768392,12,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
+						displayErrorMessage("Can't make the gem!");
 						return;
 					}
+					
+					depositGem(resultingGem);
+					
+					if(GV.ingameCore.gems.indexOf(gem) >= 0)
+						GV.ingameCore.gems.splice(GV.ingameCore.gems.indexOf(gem), 1);
+						
+					GV.ingameCore.gems.push(resultingGem);
+					GV.ingameCore.changeMana( -combineCost, false, true);
+					GV.ingameCore.controller.deselectEverything(true, true);
+					
+					SB.playSound("sndgemcombined");
 				}
 			}
 			catch(error:Error)
@@ -307,13 +306,58 @@ package Gemsmith
 				GemsmithMod.logger.log("CastCombineOnMouse", "Caught an exception!");
 				GemsmithMod.logger.log("CastCombineOnMouse", error.message);
 				GemsmithMod.logger.log("CastCombineOnMouse", error.getStackTrace());
-				SB.playSound("sndalert");
-				GV.vfxEngine.createFloatingText(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Caught an exception!",16768392,20,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
+				displayErrorMessage("Caught an exception!");
 				return;
 			}
 		}
+		
+		private function insertGemIntoInventoryAction(invSlot: Number): Function
+		{
+			return function(gem: Gem): void 
+			{
+				GV.ingameCore.inventorySlots[invSlot] = null;
+				GV.ingameCore.controller.placeGemIntoSlot(gem, invSlot);
+			}
+		}
+		
+		private function insertGemIntoBuildingAction(building: Object, removePrevious: Boolean): Function
+		{
+			return function(gem: Gem): void 
+			{
+				if (removePrevious)
+				{
+					GV.ingameCore.spellCaster.cnt.cntGemsInInventory.removeChild(building.insertedGem.mc);
+					GV.ingameCore.spellCaster.cnt.cntGemsInTowers.removeChild(building.insertedGem.mc);
+					GV.ingameCore.spellCaster.cnt.cntDraggedGem.removeChild(building.insertedGem.mc);
+					
+					building.removeGem();
+				}
+				building.insertGem(gem);
+			}
+		}
 
-		public function conjureGemOnMouse(): void
+		public function displayErrorMessage(text: String): void
+		{
+			SB.playSound("sndalert");
+			GV.vfxEngine.createFloatingText(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),text,16768392,12,"center",Math.random() * 3 - 1.5,-4 - Math.random() * 3,0,0.55,12,0,1000);
+		}
+
+		public function findSlottableBuildingUnderCursor(): Object
+		{
+			var vX:Number = Math.floor((GV.main.mouseX - GemsmithMod.WAVESTONE_WIDTH) / GemsmithMod.TILE_SIZE);
+			var vY:Number = Math.floor((GV.main.mouseY - GemsmithMod.TOP_UI_HEIGHT) / GemsmithMod.TILE_SIZE);
+			
+			if (vX >= GemsmithMod.FIELD_WIDTH - 1 || vX < 1 || vY >= GemsmithMod.FIELD_HEIGHT - 1 || vY < 1)
+				return null;
+			var grid: Object = GV.ingameCore.buildingRegPtMatrix;
+			var building:Object = grid[vY][vX] || grid[vY - 1][vX] || grid[vY][vX - 1] || grid[vY - 1][vX - 1];
+			if (building != null && building.hasOwnProperty("insertedGem"))
+				return building;
+			else
+				return null;
+		}
+		
+		public function createGemOnMouse(): void
 		{
 			var invSlot:int = GV.ingameCore.calculator.findFirstEmptyInvSlot();
 			if (invSlot != -1)
@@ -334,48 +378,38 @@ package Gemsmith
 			
 			if(sourceGem == null && recipe.type != "Spec")
 				return sourceGem;
-			
+				
 			if (recipe == Recipe.emptyRecipe)
 				return sourceGem;
 				
 			try 
 			{
 				var virtualInv: Array = new Array();
-			
+				
 				// We're handling mana expenditure stats ourselves
 				var sourceCombiningCost: Number;
 				var sourceComponentCosts: Array;
-
+				
 				// Arrays to hold the step-by-step costs, these are filled as we perform the combine
 				var stepCombiningCost: Array = new Array();
 				var stepComponentCosts: Array = new Array();
 				if (recipe.type == "Spec")
 				{
+					//These are subtracted to calculate mana expenditure, but we're making them ourselves so we shouldn't
+					sourceComponentCosts = new Array(0, 0, 0, 0, 0, 0, 0, 0, 0);
+					sourceCombiningCost = 0;
 					for (var step: String in recipe.seedGems)
 					{
-						var type: int;
-						var letter: String = recipe.seedGems[step].substr(0, 1);
-						if (letter == "r")
-							type = GemComponentType.CHAIN_HIT;
-						else if(letter == "b")
-							type = GemComponentType.BLOODBOUND;
-						else if(letter == "o")
-							type = GemComponentType.MANA_LEECHING;
-						else if(letter == "y")
-							type = GemComponentType.CRITHIT;
-						else type = GemComponentType.CRITHIT
+						if (!gemTypeAvailable(recipe.seedGems[step]))
+							return null;
+						var seed: Gem = createPureGem(recipe.seedGems[step]);
 						
-						var seed: Gem = conjurePureGem(type);
-						if (seed == null)
-							return sourceGem;
 						virtualInv[step] = seed;
 						stepCombiningCost[step] = 0;
-						
+						stepComponentCosts[step] = new Array();
 						// We're handling mana expenditure stats ourselves
-						sourceComponentCosts = new Array(0, 0, 0, 0, 0, 0, 0, 0, 0);
 						for(var sc: int = 0; sc < sourceComponentCosts.length; sc++)
-							sourceComponentCosts[sc] = virtualInv[step].manaValuesByComponent[sc].g();
-						stepComponentCosts[step] = sourceComponentCosts.concat();
+							stepComponentCosts[step][sc] = virtualInv[step].manaValuesByComponent[sc].g();
 					}
 				}
 				else
@@ -388,7 +422,7 @@ package Gemsmith
 					stepCombiningCost[0] = sourceCombiningCost;
 					stepComponentCosts[0] = sourceComponentCosts.concat();
 				}
-
+				
 				var instrindex: String;
 				for(instrindex in localinstructions)
 				{
@@ -397,20 +431,20 @@ package Gemsmith
 					res.kills.s(Math.round(res.kills.g() / 2));
 					res.hits.s(Math.round(res.hits.g() / 2));
 					virtualInv[instrindex] = (res);
-
+					
 					// Now we fill in the mana expenditure values
 					stepCombiningCost[instrindex] = (stepCombiningCost[instr.left] + stepCombiningCost[instr.right] + GV.ingameCore.gemCombiningManaCost.g());
 					stepComponentCosts[instrindex] = (addByComponentCosts(stepComponentCosts[instr.left], stepComponentCosts[instr.right]));
 				}
-
+				
 				resultingGem = virtualInv[instrindex];
 				var totalCombiningCost: Number = stepCombiningCost[instrindex];
 				
 				// We're handling stats ourselves
 				resultingGem.combinationManaValue.s(totalCombiningCost);
-
+				
 				GV.ingameCore.spellCaster.stats.spentManaOnCombinationCost += totalCombiningCost - sourceCombiningCost;
-
+				
 				var resultingComponentCosts: Array = stepComponentCosts[instrindex];
 				GV.ingameCore.spellCaster.stats.spentManaOnBloodboundGem += resultingComponentCosts[GemComponentType.BLOODBOUND] - sourceComponentCosts[GemComponentType.BLOODBOUND];
 				GV.ingameCore.spellCaster.stats.spentManaOnPoolboundGem += resultingComponentCosts[GemComponentType.POOLBOUND] - sourceComponentCosts[GemComponentType.POOLBOUND];
@@ -457,8 +491,11 @@ package Gemsmith
 			}
 			// In case of failure we just return the source gem
 			var resultingGem:Gem = performCombineFromRecipe(recipe, gem) || gem;
-			resultingGem.recalculateSds();
-			GV.gemBitmapCreator.giveGemBitmaps(resultingGem);
+			if (resultingGem != null)
+			{
+				resultingGem.recalculateSds();
+				GV.gemBitmapCreator.giveGemBitmaps(resultingGem);
+			}
 			if (recipe.type == "Combine")
 			{
 				// Restore the modified range
@@ -474,29 +511,54 @@ package Gemsmith
 		// Creates a gem from scratch
 		public function conjureGem(recipe:Recipe, gemType:int, baseGrade:int = 0): Gem
 		{
-			var baseGem: Gem = conjurePureGem(gemType, baseGrade);
-			if (baseGem == null)
-				return null;
+			var baseGem: Gem = null;
+			
+			if (recipe.type == "Combine")
+			{
+				baseGem = conjurePureGem(gemType, baseGrade);
+				if (baseGem == null)
+					return null;
+			}
+				
 			var totalRecipeCost:Number = totalCombineCost(recipe, baseGem);
 			if (GV.ingameCore.getMana() < totalRecipeCost)
 				return baseGem;
 				
 			baseGem = virtualCombineGem(recipe, baseGem);
+			
 			GV.ingameCore.changeMana( -totalRecipeCost, false, true);
 			return baseGem;
 		}
 		
-		public function conjurePureGem(gemType: int, grade: int = 0): Gem
+		private function conjurePureGem(gemType: int, grade: int = 0): Gem
 		{
 			if (GV.ingameCore.getMana() < GV.ingameCore.gemCreatingBaseManaCosts[grade])
-				return null;
-			if (!GV.ingameCore.arrIsSpellBtnVisible[gemType])
 				return null;
 				
 			var baseGem:Gem = GV.ingameCore.creator.createGem(grade, gemType, true);
 			GV.ingameCore.changeMana( -GV.ingameCore.gemCreatingBaseManaCosts[grade], false, true);
 			
 			return baseGem;
+		}
+		
+		private function createPureGem(gemType: int, grade: int = 0): Gem
+		{
+			var baseGem:Gem = GV.ingameCore.creator.createGem(grade, gemType, false);
+			
+			return baseGem;
+		}
+		
+		public function gemTypesAvailable(types: Array): Boolean
+		{
+			var allPass:Boolean = true;
+			for each(var type: int in types)
+				allPass = allPass && gemTypeAvailable(type);
+			return allPass;
+		}
+		
+		public function gemTypeAvailable(type: int): Boolean
+		{
+			return GV.ingameCore.arrIsSpellBtnVisible[type];
 		}
 		
 		// A helper method for summing two gems' component costs
@@ -512,10 +574,16 @@ package Gemsmith
 		{
 			var sourceGemCost: Number;
 			if (recipe.type == "Spec")
+			{
 				sourceGemCost = GV.ingameCore.gemCreatingBaseManaCosts[0];
+				return sourceGemCost * (recipe.value) + GV.ingameCore.gemCombiningManaCost.g() * recipe.combines;
+			}
 			else if (recipe.type == "Combine")
+			{
 				sourceGemCost = sourceGem.cost.g();
-			return sourceGemCost * (recipe.value - 1) + GV.ingameCore.gemCombiningManaCost.g() * recipe.combines;
+				return sourceGemCost * (recipe.value - 1) + GV.ingameCore.gemCombiningManaCost.g() * recipe.combines;
+			}
+			return sourceGem.cost.g() * (recipe.value - 1) + GV.ingameCore.gemCombiningManaCost.g() * recipe.combines;
 		}
 
 		public function currentRecipeName(): String
@@ -652,43 +720,15 @@ package Gemsmith
 				var exampleRecipeFile:File = storage.resolvePath("Gemsmith/recipes/example_8combine.txt");
 				var eRFStream:FileStream = new FileStream();
 				eRFStream.open(exampleRecipeFile, FileMode.WRITE);
-				eRFStream.writeUTFBytes("o\r\n0+0\r\n1+0\r\n2+0\r\n3+0\r\n4+0\r\n5+1");
+				eRFStream.writeUTFBytes("Equations:\r\n(val=1)0=g1k\r\n(val=2)1=0+0\r\n(val=3)2=1+0\r\n(val=4)3=2+0\r\n(val=6)4=3+1\r\n(val=8)5=4+1\r\n\r\nkc000008-gemforcev2.0.0-table_kgcexact");
 				eRFStream.close();
 			}
-
-			var fwgc:File = storage.resolvePath("FWGC");
-			if(!fwgc.isDirectory)
-				return;
-
-			GemsmithMod.logger.log("PrepareFolders", "Moving stuff from ./FWGC");
-			var oldRecipesFolder:File = storage.resolvePath("FWGC/recipes");
-			oldRecipesFolder.copyTo(recipesFolder, true);
-			GemsmithMod.logger.log("PrepareFolders", "Moved recipes");
-			var oldConfig:File = storage.resolvePath("FWGC/FWGC_config.json");
-			if(oldConfig.exists)
-			{
-				var oldCStream:FileStream = new FileStream()
-				oldCStream.open(oldConfig, FileMode.READ);
-				var oldJSON:String = oldCStream.readUTFBytes(oldCStream.bytesAvailable);
-				oldCStream.close();
-				var pattern:RegExp = /FWGC/g;
-				oldJSON = oldJSON.replace(pattern,"Gemsmith");
-				
-				oldCStream.open(oldConfig, FileMode.WRITE);
-				oldCStream.writeUTFBytes(oldJSON);
-				oldCStream.close();
-				oldConfig.copyTo(storageFolder.resolvePath("Gemsmith_config.json"), true);
-				GemsmithMod.logger.log("PrepareFolders", "Moved config");
-			}
-
-			fwgc.moveToTrash();
-			GemsmithMod.logger.log("PrepareFolders", "Moved ./FWGC to trash!");
 		}
 		
 		public function reloadEverything(): void
 		{
 			this.configuration = loadConfigurationOrDefault();
-			this.recipes = formRecipeList();
+			formRecipeList();
 			GV.vfxEngine.createFloatingText(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Reloaded recipes & config!",99999999,20,"center",0,0,0,0,24,0,1000);
 			SB.playSound("sndalert");
 		}
@@ -724,6 +764,7 @@ package Gemsmith
 		{
 			GemsmithMod.bezel.addEventListener(EventTypes.INGAME_GEM_INFO_PANEL_FORMED, eh_ingameGemInfoPanelFormed);
 			GemsmithMod.bezel.addEventListener(EventTypes.INGAME_KEY_DOWN, eh_interceptKeyboardEvent);
+			GemsmithMod.bezel.addEventListener(EventTypes.INGAME_NEW_SCENE, formRecipeList);
 			GemsmithMod.gameObjects.main.stage.addEventListener(MouseEvent.MOUSE_WHEEL, eh_ingameWheelScrolled, true, 10);
 			GemsmithMod.gameObjects.main.stage.addEventListener(KeyboardEvent.KEY_DOWN, eh_keyboadKeyDown, true);
 			GemsmithMod.gameObjects.main.stage.addEventListener(KeyboardEvent.KEY_UP, eh_keyboadKeyUp, true);
@@ -733,7 +774,8 @@ package Gemsmith
 		{
 			GemsmithMod.bezel.removeEventListener(EventTypes.INGAME_GEM_INFO_PANEL_FORMED, eh_ingameGemInfoPanelFormed);
 			GemsmithMod.bezel.removeEventListener(EventTypes.INGAME_KEY_DOWN, eh_interceptKeyboardEvent);
-			GemsmithMod.gameObjects.main.stage.removeEventListener(MouseEvent.MOUSE_WHEEL, eh_ingameWheelScrolled, true, 10);
+			GemsmithMod.bezel.removeEventListener(EventTypes.INGAME_NEW_SCENE, formRecipeList);
+			GemsmithMod.gameObjects.main.stage.removeEventListener(MouseEvent.MOUSE_WHEEL, eh_ingameWheelScrolled, true);
 			GemsmithMod.gameObjects.main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, eh_keyboadKeyDown, true);
 			GemsmithMod.gameObjects.main.stage.removeEventListener(KeyboardEvent.KEY_UP, eh_keyboadKeyUp, true);
 		}

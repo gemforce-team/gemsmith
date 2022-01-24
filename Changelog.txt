@@ -62,3 +62,9 @@
 	Update by piepie62, Gemsmith now depends on Bezel 1.0.0 and as a result is compatible with both GCCS and GCFW.
 	Also now has proper types instead of Object types everywhere.
 	Hotkeys are now handled by Bezel.
+
+24.01.2022 v1.13
+	Updated to use Bezel's settings and keybinds handling.
+	Added Ctrl+scrolling over  agem to cycle the recipe.
+	Added support for Spec recipes (useful for GCCS). These work in both GCCS and GCFW.
+	Dropped support for non-gemforce format of recipes.

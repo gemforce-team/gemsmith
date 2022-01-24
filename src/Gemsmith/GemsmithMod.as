@@ -13,11 +13,12 @@ package Gemsmith
 	public class GemsmithMod extends MovieClip implements BezelMod
 	{
 		
-		public function get VERSION():String { return "1.12"; }
-		public function get BEZEL_VERSION():String { return "1.0.0"; }
+		public function get VERSION():String { return "1.13"; }
+		public function get BEZEL_VERSION():String { return "1.0.1"; }
 		public function get MOD_NAME():String { return "Gemsmith"; }
 		
 		private var gemsmith:Object;
+		private var game:String;
 		
 		internal static var bezel:Bezel;
 		internal static var logger:Logger;
@@ -26,6 +27,12 @@ package Gemsmith
 
 		public static const GCFW_VERSION:String = "1.2.1a";
 		public static const GCCS_VERSION:String = "1.0.6";
+		
+		public static var FIELD_WIDTH: Number;
+		public static var FIELD_HEIGHT: Number;
+		public static var WAVESTONE_WIDTH: Number;
+		public static var TOP_UI_HEIGHT: Number;
+		public static var TILE_SIZE: Number;
 		
 		public function GemsmithMod()
 		{
@@ -42,10 +49,14 @@ package Gemsmith
 			if (bezel.mainLoader is GCFWBezel)
 			{
 				gemsmith = new GCFWGemsmith();
+				initForGame("GCFW");
+				gemsmith.formRecipeList();
 			}
 			else
 			{
 				gemsmith = new GCCSGemsmith();
+				initForGame("GCCS");
+				gemsmith.formRecipeList();
 			}
 		}
 		
@@ -58,9 +69,62 @@ package Gemsmith
 			}
 		}
 		
+		private function initForGame(game:String): void
+		{
+			this.game = game;
+			if (game == "GCCS")
+			{
+				FIELD_WIDTH = 54;
+				FIELD_HEIGHT = 32;
+				WAVESTONE_WIDTH = 39;
+				TOP_UI_HEIGHT = 53;
+				TILE_SIZE = 17;
+			}
+			else
+			{
+				FIELD_WIDTH = 60;
+				FIELD_HEIGHT = 38;
+				WAVESTONE_WIDTH = 50;
+				TOP_UI_HEIGHT = 8;
+				TILE_SIZE = 28;
+			}
+		}
+		
+		public function letterToGemType(letter:String): int
+		{
+			if (this.game == "GCCS")
+			{
+				if (letter == "r")
+					return gameObjects.constants.gemComponentType.CHAIN_HIT;
+				else if(letter == "b")
+					return gameObjects.constants.gemComponentType.BLOODBOUND;
+				else if(letter == "o")
+					return gameObjects.constants.gemComponentType.MANA_LEECHING;
+				else if(letter == "y")
+					return gameObjects.constants.gemComponentType.CRITHIT;
+				else return gameObjects.constants.gemComponentType.CRITHIT
+			}
+			else if(this.game == "GCFW")
+			{
+				if (letter == "r")
+					return gameObjects.constants.gemComponentType.BLEEDING;
+				else if(letter == "b")
+					return gameObjects.constants.gemComponentType.SLOWING;
+				else if(letter == "o")
+					return gameObjects.constants.gemComponentType.MANA_LEECHING;
+				else if(letter == "y")
+					return gameObjects.constants.gemComponentType.CRITHIT;
+				else return gameObjects.constants.gemComponentType.CRITHIT
+			}
+			else
+				return 0;
+		}
+		
 		public function prettyVersion(): String
 		{
-			return 'v' + VERSION + ' for ' + (bezel.mainLoader is GCFWBezel) ? GCFW_VERSION : GCCS_VERSION;
+			var version: String = 'v' + VERSION + ' for Bezel ';
+			version += BEZEL_VERSION;
+			return version;
 		}
 	}
 

@@ -104,7 +104,13 @@ package Gemsmith
 				{
 					if (comp.indexOf("g1") != -1)
 					{
-						recipe.seedGems[opIndex] = comp.split("g1")[1];
+						recipe.seedGems[opIndex] = comp.split("g1")[1].substr(0, 1);
+						
+						var type: int;
+						var letter: String = recipe.seedGems[opIndex];
+						type = GemsmithMod.instance.letterToGemType(letter);
+						
+						recipe.seedGems[opIndex] = type;
 						continue;
 					}
 					components = comp.split("+");
