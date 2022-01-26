@@ -71,53 +71,48 @@ package Gemsmith
 			{
 				fileContents = fileContents.substring(equationsIndex + 12);
 			}
-			var equations: Array = fileContents.split('\n');
-			if (recipe.type == "Combine")
-			{
-				equations.pop();
-				equations.pop();
-			}
-			else if (recipe.type == "Spec")
-			{
-				equations.pop();
-			}
+			var equations: Array = fileContents.split(/(\r\n|\r|\n)/);
 			
 			var letter: String;
-			for(var equation: String in equations)
+			for(var line: String in equations)
 			{
-				var components: Array = equations[equation].split(')');
-				if (components.length != 2)
-				{
-					break;
-				}
-				
-				var comp: String = (String)(components[1]);
-				var opIndex: Number = comp.split("=")[0];
+				var equation: String = equations[line];
+				if (equation.indexOf('=') == -1)
+					continue;
+					
+				var valueDataEnd:int = equation.lastIndexOf(')');
+				if (valueDataEnd > 0)
+					equation  = equation.substring(valueDataEnd + 1);
+					
+				var components: Array;
+					
+				var opIndex: Number = equation.split('=')[0];
+				equation = equation.split('=')[1];
 				if (recipe.type == "Combine")
 				{
-					if (comp.indexOf("g1") != -1)
+					if (equation.indexOf("g1") != -1)
 						if (opIndex == 0)
 						{
-							letter = comp.split("g1")[1].substr(0, 1);
+							letter = equation.split("g1")[1].substr(0, 1);
 							recipe.baseGem = GemsmithMod.instance.letterToGemType(letter);
 							continue;
 						}
 						else
 							break;
-					components = (String)(components[1]).split("+");
 				}
 				else if (recipe.type == "Spec")
 				{
-					if (comp.indexOf("g1") != -1)
+					if (equation.indexOf("g1") != -1)
 					{
-						letter = comp.split("g1")[1].substr(0, 1);
+						letter = equation.split("g1")[1].substr(0, 1);
 						recipe.seedGems[opIndex] = GemsmithMod.instance.letterToGemType(letter);
 						if ((letter == "y") || (letter=="o"))
 							recipe.baseGem = recipe.seedGems[opIndex];
 						continue;
 					}
-					components = comp.split("+");
 				}
+				
+				components = equation.split('+');
 				
 				var lastDigits:RegExp = /[\d]*$/;
 				var gl: Number = Number(((String)(components[0])).match(lastDigits)[0]);
