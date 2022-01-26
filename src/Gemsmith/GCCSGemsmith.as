@@ -10,23 +10,20 @@ package Gemsmith
 	import Bezel.Events.IngameKeyDownEvent;
 	import Bezel.Utils.Keybind;
 	import Bezel.Utils.SettingManager;
-	import air.update.events.StatusFileUpdateErrorEvent;
-	import com.giab.games.gccs.steam.entity.Trap;
-	
 	import com.giab.games.gccs.steam.GV;
 	import com.giab.games.gccs.steam.SB;
 	import com.giab.games.gccs.steam.constants.ActionStatus;
 	import com.giab.games.gccs.steam.constants.GemComponentType;
 	import com.giab.games.gccs.steam.entity.Gem;
+	import com.giab.games.gccs.steam.entity.Trap;
 	import com.giab.games.gccs.steam.mcDyn.McInfoPanel;
-	
 	import flash.display.MovieClip;
 	import flash.events.*;
 	import flash.filesystem.*;
 	import flash.filters.GlowFilter;
 	import flash.net.*;
 	import flash.system.*;
-
+	
 	// We extend MovieClip so that flash.display.Loader accepts our class
 	// The loader also requires a parameterless constructor (AFAIK), so we also have a .Bind method to bind our class to the game
 	public class GCCSGemsmith extends MovieClip
@@ -35,7 +32,6 @@ package Gemsmith
 
 		private var recipes:Array;
 		private var currentRecipeIndex:int;
-		private var configuration:Object;
 		private var infoPanelState:int;
 		private var updateAvailable:Boolean;
 		private var ctrlKeyHeld: Boolean;
@@ -49,8 +45,6 @@ package Gemsmith
 			storage = File.applicationStorageDirectory;
 			
 			prepareFoldersAndLogger();
-			this.configuration = loadConfigurationOrDefault();
-			this.configuration = updateConfig(this.configuration);
 			this.infoPanelState = InfoPanelState.GEMSMITH;
 			this.updateAvailable = false;
 			this.ctrlKeyHeld = false;
@@ -101,79 +95,6 @@ package Gemsmith
 			}
 			newRecipes.sortOn("name");
 			this.recipes = newRecipes;
-		}
-
-		private function loadConfigurationOrDefault(): Object
-		{
-			var configFile:File = storage.resolvePath("Gemsmith/Gemsmith_config.json");
-			var configStream:FileStream = new FileStream();
-			var config:Object = null;
-			var configJSON:String = null;
-
-			if(!configFile.exists)
-			{
-				config = createDefaultConfiguration();
-				configJSON = JSON.stringify(config, null, 2);
-				configStream.open(configFile, FileMode.WRITE);
-				configStream.writeUTFBytes(configJSON);
-				configStream.close();
-			}
-			else
-			{
-				try
-				{
-					configStream.open(configFile, FileMode.READ);
-					configJSON = configStream.readUTFBytes(configStream.bytesAvailable);
-					config = JSON.parse(configJSON);
-					
-					GemsmithMod.logger.log("LoadConfiguration", "Loaded existing configuration");
-				}
-				catch(error:Error)
-				{
-					config = createDefaultConfiguration();
-					GemsmithMod.logger.log("LoadConfiguration", "There was an error when loading an existing config file:");
-					GemsmithMod.logger.log("LoadConfiguration", error.message);
-					GemsmithMod.logger.log("LoadConfiguration", "Configuration was reset to defaults");
-				}
-				configStream.close();
-
-				if(config == null)
-				{
-					config = createDefaultConfiguration();
-					GemsmithMod.logger.log("LoadConfiguration", "Configuration was invalid for some reason, using defaults");
-				}
-			}
-			return config;
-		}
-
-		private function createDefaultConfiguration(): Object
-		{
-			var config:Object = new Object();
-			config["Check for updates"] = true;
-
-			return config;
-		}
-
-		// A placeholder method to later implement config "upgrading" when a new version adds some values
-		private function updateConfig(config:Object) : Object
-		{
-			var oldConfigFile:File = storage.resolvePath("Gemsmith/Gemsmith_config.json.backup");
-			var configStream:FileStream = new FileStream();
-			configStream.open(oldConfigFile, FileMode.WRITE);
-			configStream.writeUTFBytes(JSON.stringify(this.configuration, null, 2));
-			configStream.close();
-			
-			if (config["Hotkeys"] != null)
-				delete config["Hotkeys"];
-			
-			if (config["Check for updates"] == null)
-				config["Check for updates"] = true;
-				
-			var configFile:File = storage.resolvePath("Gemsmith/Gemsmith_config.json");
-			configStream.open(configFile, FileMode.WRITE);
-			configStream.writeUTFBytes(JSON.stringify(this.configuration, null, 2));
-			configStream.close();
-			return config;
 		}
 
 		public function cycleSelectedRecipe(increment:int): void
@@ -505,6 +426,7 @@ package Gemsmith
 				resultingGem.sd4_BoundMod.range.s(vRange4 * resultingGem.rangeRatio.g());
 				resultingGem.sd5_EnhancedOrTrap.range.s(vRange5 * resultingGem.rangeRatio.g());
 			}
+			
 			return resultingGem;
 		}
 		
@@ -727,7 +649,6 @@ package Gemsmith
 		
 		public function reloadEverything(): void
 		{
-			this.configuration = loadConfigurationOrDefault();
 			formRecipeList();
 			GV.vfxEngine.createFloatingText(GV.main.mouseX,GV.main.mouseY < 60?Number(GV.main.mouseY + 30):Number(GV.main.mouseY - 20),"Reloaded recipes & config!",99999999,20,"center",0,0,0,0,24,0,1000);
 			SB.playSound("sndalert");
@@ -735,7 +656,7 @@ package Gemsmith
 		
 		private function checkForUpdates(): void
 		{
-			if(!this.configuration["Check for updates"])
+			if(!settings.retrieveBoolean("Check for updates"))
 				return;
 			
 			GemsmithMod.logger.log("CheckForUpdates", "Mod version: " + GemsmithMod.instance.prettyVersion());

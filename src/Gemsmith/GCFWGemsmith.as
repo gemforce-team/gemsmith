@@ -10,7 +10,6 @@ package Gemsmith
 	import Bezel.Events.IngameKeyDownEvent;
 	import Bezel.Utils.Keybind;
 	import Bezel.Utils.SettingManager;
-	
 	import com.giab.games.gcfw.GV;
 	import com.giab.games.gcfw.SB;
 	import com.giab.games.gcfw.constants.ActionStatus;
@@ -20,7 +19,6 @@ package Gemsmith
 	import com.giab.games.gcfw.ingame.IngameCore;
 	import com.giab.games.gcfw.mcDyn.McInfoPanel;
 	import com.giab.games.gcfw.mcStat.CntIngame;
-	
 	import flash.display.MovieClip;
 	import flash.events.*;
 	import flash.filesystem.*;
@@ -32,10 +30,6 @@ package Gemsmith
 	// The loader also requires a parameterless constructor (AFAIK), so we also have a .Bind method to bind our class to the game
 	public class GCFWGemsmith extends MovieClip
 	{	
-		// Game object shortcuts
-		internal var core:IngameCore;/*IngameCore*/
-		internal var cnt:CntIngame;/*CntIngame*/
-		
 		internal static var storage:File;
 
 		private var recipes:Array;
@@ -51,8 +45,6 @@ package Gemsmith
 			super();
 			
 			storage = File.applicationStorageDirectory;
-			this.core = GV.ingameCore;
-			this.cnt = GV.main.cntScreens.cntIngame;
 			
 			prepareFoldersAndLogger();
 			this.infoPanelState = InfoPanelState.GEMSMITH;
@@ -112,7 +104,7 @@ package Gemsmith
 			if(this.currentRecipeIndex == -1)
 				return;
 				
-			var gem:Gem = this.core.controller.getGemUnderPointer(false);
+			var gem:Gem = GV.ingameCore.controller.getGemUnderPointer(false);
 			if (!gem)
 				return;
 			
@@ -121,7 +113,7 @@ package Gemsmith
 				this.currentRecipeIndex = recipes.length - 1;
 			else if(this.currentRecipeIndex > recipes.length - 1)
 				this.currentRecipeIndex = 0;
-			this.core.infoPanelRenderer2.renderInfoPanelGem(gem, gem.containingBuilding);
+			GV.ingameCore.infoPanelRenderer2.renderInfoPanelGem(gem, gem.containingBuilding);
 		}
 
 		// Main method, this is called when pressing the hotkey
@@ -319,13 +311,13 @@ package Gemsmith
 		
 		public function conjureGemOnMouse(): void
 		{
-			var invSlot:int = this.core.calculator.findFirstEmptyInvSlot();
+			var invSlot:int = GV.ingameCore.calculator.findFirstEmptyInvSlot();
 			if (invSlot != -1)
 			{
 				var newGem:Gem = conjureGem(this.currentRecipe(), 1, 1);
 				newGem.targetPriority = 4;
-				this.core.controller.placeGemIntoSlot(newGem, invSlot);
-				this.core.gems.push(newGem);
+				GV.ingameCore.controller.placeGemIntoSlot(newGem, invSlot);
+				GV.ingameCore.gems.push(newGem);
 			}
 		}
 		
@@ -652,7 +644,7 @@ package Gemsmith
 				vIp.addSeparator(0);
 				vIp.addTextfield(15015015,"Gemsmith",true,13, [new GlowFilter(0,1,3,6),new GlowFilter(16056320,0.28,25,12)]);
 				vIp.addTextfield(16777215,"Recipe name: " + this.currentRecipeName(),false,12);
-				vIp.addTextfield(this.totalCombineCostCurrent(gem) <= this.core.getMana()?Number(9756413):Number(13417386),"Combine cost: " + numberFormatter.format(this.totalCombineCostCurrent(gem)),true,10);
+				vIp.addTextfield(this.totalCombineCostCurrent(gem) <= GV.ingameCore.getMana()?Number(9756413):Number(13417386),this.currentRecipe().type + " cost: " + numberFormatter.format(this.totalCombineCostCurrent(gem)),true,10);
 				vIp.addTextfield(14212095,"Recipe value: " + numberFormatter.format(this.currentRecipe().value),true,10);
 				vIp.addTextfield(16777215, "Grade increase: +" + this.currentRecipe().gradeIncrease, false, 10);
 				if(this.updateAvailable)
@@ -729,6 +721,16 @@ package Gemsmith
 			GemsmithMod.gameObjects.main.stage.addEventListener(KeyboardEvent.KEY_UP, eh_keyboadKeyUp, true);
 		}
 		
+		private function removeEventListeners(): void
+		{
+			GemsmithMod.bezel.removeEventListener(EventTypes.INGAME_GEM_INFO_PANEL_FORMED, eh_ingameGemInfoPanelFormed);
+			GemsmithMod.bezel.removeEventListener(EventTypes.INGAME_KEY_DOWN, eh_interceptKeyboardEvent);
+			GemsmithMod.bezel.removeEventListener(EventTypes.INGAME_NEW_SCENE, formRecipeList);
+			GemsmithMod.gameObjects.main.stage.removeEventListener(MouseEvent.MOUSE_WHEEL, eh_ingameWheelScrolled, true);
+			GemsmithMod.gameObjects.main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, eh_keyboadKeyDown, true);
+			GemsmithMod.gameObjects.main.stage.removeEventListener(KeyboardEvent.KEY_UP, eh_keyboadKeyUp, true);
+		}
+		
 		public function unload(): void
 		{
 			removeEventListeners();
@@ -756,16 +758,6 @@ package Gemsmith
 		public function eh_keyboadKeyUp(e: KeyboardEvent): void
 		{
 			this.ctrlKeyHeld = e.ctrlKey;
-		}
-		
-		private function removeEventListeners(): void
-		{
-			GemsmithMod.bezel.removeEventListener(EventTypes.INGAME_GEM_INFO_PANEL_FORMED, eh_ingameGemInfoPanelFormed);
-			GemsmithMod.bezel.removeEventListener(EventTypes.INGAME_KEY_DOWN, eh_interceptKeyboardEvent);
-			GemsmithMod.bezel.removeEventListener(EventTypes.INGAME_NEW_SCENE, formRecipeList);
-			GemsmithMod.gameObjects.main.stage.removeEventListener(MouseEvent.MOUSE_WHEEL, eh_ingameWheelScrolled, true);
-			GemsmithMod.gameObjects.main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, eh_keyboadKeyDown, true);
-			GemsmithMod.gameObjects.main.stage.removeEventListener(KeyboardEvent.KEY_UP, eh_keyboadKeyUp, true);
 		}
 		
 		private function registerKeybinds(): void
