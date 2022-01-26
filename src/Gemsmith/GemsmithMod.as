@@ -13,8 +13,8 @@ package Gemsmith
 	public class GemsmithMod extends MovieClip implements BezelMod
 	{
 		
-		public function get VERSION():String { return "1.13"; }
-		public function get BEZEL_VERSION():String { return "1.0.1"; }
+		public function get VERSION():String { return "1.14"; }
+		public function get BEZEL_VERSION():String { return "1.1.2"; }
 		public function get MOD_NAME():String { return "Gemsmith"; }
 		
 		private var gemsmith:Object;
@@ -98,9 +98,9 @@ package Gemsmith
 					return gameObjects.constants.gemComponentType.CHAIN_HIT;
 				else if(letter == "b")
 					return gameObjects.constants.gemComponentType.BLOODBOUND;
-				else if(letter == "o")
+				else if(letter == "o" || letter=="m")
 					return gameObjects.constants.gemComponentType.MANA_LEECHING;
-				else if(letter == "y")
+				else if(letter == "y" || letter == "k")
 					return gameObjects.constants.gemComponentType.CRITHIT;
 				else return gameObjects.constants.gemComponentType.CRITHIT
 			}
@@ -110,9 +110,9 @@ package Gemsmith
 					return gameObjects.constants.gemComponentType.BLEEDING;
 				else if(letter == "b")
 					return gameObjects.constants.gemComponentType.SLOWING;
-				else if(letter == "o")
+				else if(letter == "o" || letter=="m")
 					return gameObjects.constants.gemComponentType.MANA_LEECHING;
-				else if(letter == "y")
+				else if(letter == "y" || letter == "k")
 					return gameObjects.constants.gemComponentType.CRITHIT;
 				else return gameObjects.constants.gemComponentType.CRITHIT
 			}

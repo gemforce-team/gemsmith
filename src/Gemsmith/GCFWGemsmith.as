@@ -36,7 +36,8 @@ package Gemsmith
 		private var currentRecipeIndex:int;
 		private var infoPanelState:int;
 		private var updateAvailable:Boolean;
-		private var ctrlKeyHeld: Boolean;
+		private var ctrlKeyHeld:Boolean;
+		private var lastHoveredGem:Gem;
 		private static var settings:SettingManager;
 		
 		// Parameterless constructor for flash.display.Loader
@@ -52,7 +53,8 @@ package Gemsmith
 			this.ctrlKeyHeld = false;
 			
 			settings = SettingManager.getManager("Gemsmith");
-			settings.registerBoolean("Check for updates", null, true, "Checks for updates when mod is loaded");
+			settings.registerBoolean("Check for updates", null, true, "Checks for updates when mod is loaded.");
+			settings.registerBoolean("Automatically select best combine", null, true, "Chooses the highest suitable combine for the gem you're hovering over.");
 			
 			registerKeybinds();
 
@@ -95,7 +97,7 @@ package Gemsmith
 			{
 				this.currentRecipeIndex = 0;
 			}
-			newRecipes.sortOn("name");
+			newRecipes.sortOn(["baseGem", "value"]);
 			this.recipes = newRecipes;
 		}
 
@@ -229,6 +231,9 @@ package Gemsmith
 					GV.ingameCore.controller.deselectEverything(true, true);
 					
 					SB.playSound("sndgemcombined");
+					
+					if(gem != null && settings.retrieveBoolean("Automatically select best combine"))
+						selectCombineFor(resultingGem);
 				}
 			}
 			catch(error:Error)
@@ -634,10 +639,13 @@ package Gemsmith
 		// Gemsmith adds its own tooltips in this method
 		private function eh_ingameGemInfoPanelFormed(event:IngameGemInfoPanelFormedEvent): void
 		{
-			//GemsmithMod.logger.log("eh_GemInfoPanelFormed", "Responding to an event!");
 			var vIp:McInfoPanel = event.eventArgs.infoPanel as McInfoPanel;
 			var gem:Gem = event.eventArgs.gem as Gem;
 			var numberFormatter:Object = event.eventArgs.numberFormatter;
+			
+			if (settings.retrieveBoolean("Automatically select best combine") && lastHoveredGem != gem)
+				selectCombineFor(gem);
+				
 			if (this.infoPanelState == InfoPanelState.GEMSMITH)
 			{
 				vIp.addExtraHeight(4);
@@ -652,7 +660,51 @@ package Gemsmith
 				else
 					vIp.addTextfield(10526880, "Mod version: " + GemsmithMod.instance.prettyVersion(), true, 7);
 			}
-			//GemsmithMod.logger.log("eh_GemInfoPanelFormed", "Done with the event!");
+		}
+		
+		private function selectCombineFor(gem: Gem):void 
+		{
+			if (gem == null)
+				return;
+				
+			lastHoveredGem = gem;
+				
+			var maxComponent:Object = {"type": -1, "value": -1};
+			for (var i:String in gem.manaValuesByComponent)
+			{
+				var component:Number = gem.manaValuesByComponent[i].g();
+				if (component != 0 && component > maxComponent.value)
+				{
+					maxComponent.type = (Number)(i);
+					maxComponent.value = component;
+				}
+			}
+			
+			var suitable:Object = {"index": -1, "value": -1};
+			var bestAffordable:Object = {"index": -1, "value": -1};
+			for (var j:int = 0; j < this.recipes.length; j++)
+			{
+				var recipe:Recipe = this.recipes[j];
+				if (recipe.type == "Spec")
+					continue;
+				if (GV.ingameCore.getMana() >= totalCombineCost(recipe, gem))
+				{
+					if (recipe.value > bestAffordable.value)
+					{
+						bestAffordable.index = j;
+						bestAffordable.value = recipe.value;
+					}
+					if (recipe.baseGem == maxComponent.type && recipe.value > suitable.value)
+					{
+						suitable.index = j;
+						suitable.value = recipe.value;
+					}
+				}
+			}
+			if (suitable.index != -1)
+				this.currentRecipeIndex = suitable.index;
+			else if (bestAffordable.index != -1)
+				this.currentRecipeIndex = bestAffordable.index;
 		}
 		
 		private function prepareFoldersAndLogger(): void

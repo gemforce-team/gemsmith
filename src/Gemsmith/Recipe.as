@@ -21,6 +21,7 @@ package Gemsmith
 		public var combines:Number;
 		public var type:String;
 		public var seedGems:Object;
+		public var baseGem:int;
 		
 		private static var _emptyRecipe:Recipe;
 		
@@ -81,6 +82,7 @@ package Gemsmith
 				equations.pop();
 			}
 			
+			var letter: String;
 			for(var equation: String in equations)
 			{
 				var components: Array = equations[equation].split(')');
@@ -94,8 +96,12 @@ package Gemsmith
 				if (recipe.type == "Combine")
 				{
 					if (comp.indexOf("g1") != -1)
-						if(opIndex == 0)
+						if (opIndex == 0)
+						{
+							letter = comp.split("g1")[1].substr(0, 1);
+							recipe.baseGem = GemsmithMod.instance.letterToGemType(letter);
 							continue;
+						}
 						else
 							break;
 					components = (String)(components[1]).split("+");
@@ -104,13 +110,10 @@ package Gemsmith
 				{
 					if (comp.indexOf("g1") != -1)
 					{
-						recipe.seedGems[opIndex] = comp.split("g1")[1].substr(0, 1);
-						
-						var type: int;
-						var letter: String = recipe.seedGems[opIndex];
-						type = GemsmithMod.instance.letterToGemType(letter);
-						
-						recipe.seedGems[opIndex] = type;
+						letter = comp.split("g1")[1].substr(0, 1);
+						recipe.seedGems[opIndex] = GemsmithMod.instance.letterToGemType(letter);
+						if ((letter == "y") || (letter=="o"))
+							recipe.baseGem = recipe.seedGems[opIndex];
 						continue;
 					}
 					components = comp.split("+");
@@ -147,6 +150,7 @@ package Gemsmith
 			this.gradeIncrease = NaN;
 			this.value = NaN;
 			this.combines = 0;
+			this.baseGem = -1;
 		}
 		
 		// Takes a recipe and calculates the necessary values to later calculate total cost
