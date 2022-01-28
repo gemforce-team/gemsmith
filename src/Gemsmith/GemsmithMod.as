@@ -1,15 +1,16 @@
 package Gemsmith 
 {
+	/**
+	 * ...
+	 * @author Chris
+	 */
+	
 	import Bezel.Bezel;
 	import Bezel.BezelMod;
 	import Bezel.GCFW.GCFWBezel;
 	import Bezel.Logger;
 	import flash.display.MovieClip;
-	import flash.utils.getQualifiedClassName;
-	/**
-	 * ...
-	 * @author Chris
-	 */
+	
 	public class GemsmithMod extends MovieClip implements BezelMod
 	{
 		
@@ -102,6 +103,8 @@ package Gemsmith
 					return gameObjects.constants.gemComponentType.MANA_LEECHING;
 				else if(letter == "y" || letter == "k")
 					return gameObjects.constants.gemComponentType.CRITHIT;
+				else if(letter == "w")
+					return gameObjects.constants.gemComponentType.POOLBOUND;
 				else return gameObjects.constants.gemComponentType.CRITHIT
 			}
 			else if(this.game == "GCFW")
