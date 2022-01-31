@@ -176,6 +176,11 @@ package Gemsmith
 						{
 							depositGem = insertGemIntoBuildingAction(selectedBuilding, true);
 						}
+						else 
+						{
+							displayErrorMessage("No place for the gem!");
+							return;
+						}
 					}
 					else if (recipe.type == "Spec")
 					{
@@ -273,7 +278,7 @@ package Gemsmith
 			var vX:Number = Math.floor((GV.main.mouseX - GemsmithMod.WAVESTONE_WIDTH) / GemsmithMod.TILE_SIZE);
 			var vY:Number = Math.floor((GV.main.mouseY - GemsmithMod.TOP_UI_HEIGHT) / GemsmithMod.TILE_SIZE);
 			
-			if (vX >= GemsmithMod.FIELD_WIDTH - 1 || vX < 1 || vY >= GemsmithMod.FIELD_HEIGHT - 1 || vY < 1)
+			if (vX > GemsmithMod.FIELD_WIDTH - 1 || vX < 0 || vY > GemsmithMod.FIELD_HEIGHT - 1 || vY < 0)
 				return null;
 			var grid: Object = GV.ingameCore.buildingRegPtMatrix;
 			var building:Object = grid[vY][vX] || grid[vY - 1][vX] || grid[vY][vX - 1] || grid[vY - 1][vX - 1];
@@ -725,9 +730,10 @@ package Gemsmith
 			
 			loader.addEventListener(Event.COMPLETE, function(e:Event): void {
 				var latestTag:Object = JSON.parse(loader.data).tag_name;
-				var latestVersion:String = latestTag.replace(/[v]/gim, '').split('-')[0];
-				localThis.updateAvailable = (latestVersion != GemsmithMod.instance.VERSION);
-				GemsmithMod.logger.log("CheckForUpdates", localThis.updateAvailable ? "Update available! " + latestTag : "Using the latest version: " + latestTag);
+				var latestVersion:Array = latestTag.replace(/[v]/gim, '').split('-')[0].split('.');
+				var thisVerstion:Array = GemsmithMod.instance.VERSION.split('.');
+				localThis.updateAvailable = (((Number)(latestVersion[0]) == (Number)(thisVerstion[0]) && (Number)(latestVersion[1]) > (Number)(thisVerstion[1])) || (Number)(latestVersion[0]) > (Number)(thisVerstion[0]));
+				GemsmithMod.logger.log("CheckForUpdates", localThis.updateAvailable ? "Update available! " + latestTag : "Using the latest version: " + GemsmithMod.instance.prettyVersion());
 			});
 			loader.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent): void {
 				GemsmithMod.logger.log("CheckForUpdates", "Caught an error when checking for updates!");

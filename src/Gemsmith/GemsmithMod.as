@@ -47,13 +47,13 @@ package Gemsmith
 			bezel = modLoader;
 			logger = bezel.getLogger("Gemsmith");
 			gameObjects = gObjects;
-			if (bezel.mainLoader is GCFWBezel)
+			if (bezel.mainLoader.gameClassFullyQualifiedName == "com.giab.games.gcfw.Main")
 			{
 				gemsmith = new GCFWGemsmith();
 				initForGame("GCFW");
 				gemsmith.formRecipeList();
 			}
-			else
+			else if(bezel.mainLoader.gameClassFullyQualifiedName == "com.giab.games.gccs.steam.Main")
 			{
 				gemsmith = new GCCSGemsmith();
 				initForGame("GCCS");
