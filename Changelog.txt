@@ -68,3 +68,8 @@
 	Added Ctrl+scrolling over  agem to cycle the recipe.
 	Added support for Spec recipes (useful for GCCS). These work in both GCCS and GCFW.
 	Dropped support for non-gemforce format of recipes.
+	
+31.01.2022 v1.14
+	Updated the update checker to actually compare versions.
+	Now uses Bezel's gameClassFullyQualifiedName.
+	Fixed bugs in Building detection.
