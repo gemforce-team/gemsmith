@@ -15,7 +15,7 @@ package Gemsmith
 	{
 		
 		public function get VERSION():String { return "1.14"; }
-		public function get BEZEL_VERSION():String { return "1.1.2"; }
+		public function get BEZEL_VERSION():String { return "2.0.0"; }
 		public function get MOD_NAME():String { return "Gemsmith"; }
 		
 		private var gemsmith:Object;

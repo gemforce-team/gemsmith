@@ -5,9 +5,9 @@ package Gemsmith
 	 * @author Hellrage
 	 */
 	
-	import Bezel.Events.EventTypes;
-	import Bezel.Events.IngameGemInfoPanelFormedEvent;
-	import Bezel.Events.IngameKeyDownEvent;
+	import Bezel.GCFW.Events.EventTypes;
+	import Bezel.GCFW.Events.IngameGemInfoPanelFormedEvent;
+	import Bezel.GCFW.Events.IngameKeyDownEvent;
 	import Bezel.Utils.Keybind;
 	import Bezel.Utils.SettingManager;
 	import com.giab.games.gcfw.GV;
