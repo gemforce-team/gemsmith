@@ -14,7 +14,7 @@ package Gemsmith
 	public class GemsmithMod extends MovieClip implements BezelMod
 	{
 		
-		public function get VERSION():String { return "1.14"; }
+		public function get VERSION():String { return "1.15"; }
 		public function get BEZEL_VERSION():String { return "2.0.0"; }
 		public function get MOD_NAME():String { return "Gemsmith"; }
 		

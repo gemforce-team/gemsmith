@@ -14,6 +14,7 @@ package Gemsmith
 	import com.giab.games.gccs.steam.SB;
 	import com.giab.games.gccs.steam.constants.ActionStatus;
 	import com.giab.games.gccs.steam.constants.GemComponentType;
+	import com.giab.games.gccs.steam.constants.IngameStatus;
 	import com.giab.games.gccs.steam.entity.Gem;
 	import com.giab.games.gccs.steam.entity.Trap;
 	import com.giab.games.gccs.steam.mcDyn.McInfoPanel;
@@ -783,7 +784,7 @@ package Gemsmith
 		
 		public function eh_ingameWheelScrolled(e: MouseEvent): void
 		{
-			if (!ctrlKeyHeld || !GV.ingameCore.controller.getGemUnderPointer(false))
+			if (!ctrlKeyHeld || GV.ingameCore.ingameStatus != IngameStatus.PLAYING || !GV.ingameCore.controller.getGemUnderPointer(false))
 				return;
 				
 			if (e.delta > 0)

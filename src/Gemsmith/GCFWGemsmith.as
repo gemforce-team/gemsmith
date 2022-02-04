@@ -14,11 +14,10 @@ package Gemsmith
 	import com.giab.games.gcfw.SB;
 	import com.giab.games.gcfw.constants.ActionStatus;
 	import com.giab.games.gcfw.constants.GemComponentType;
+	import com.giab.games.gcfw.constants.IngameStatus;
 	import com.giab.games.gcfw.entity.Gem;
 	import com.giab.games.gcfw.entity.Trap;
-	import com.giab.games.gcfw.ingame.IngameCore;
 	import com.giab.games.gcfw.mcDyn.McInfoPanel;
-	import com.giab.games.gcfw.mcStat.CntIngame;
 	import flash.display.MovieClip;
 	import flash.events.*;
 	import flash.filesystem.*;
@@ -809,7 +808,7 @@ package Gemsmith
 		
 		public function eh_ingameWheelScrolled(e: MouseEvent): void
 		{
-			if (!ctrlKeyHeld || !GV.ingameCore.controller.getGemUnderPointer(false))
+			if (!ctrlKeyHeld || GV.ingameCore.ingameStatus != IngameStatus.PLAYING || !GV.ingameCore.controller.getGemUnderPointer(false))
 				return;
 				
 			if (e.delta > 0)
