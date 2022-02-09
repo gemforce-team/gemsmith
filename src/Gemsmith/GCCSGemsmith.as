@@ -96,7 +96,7 @@ package Gemsmith
 			{
 				this.currentRecipeIndex = 0;
 			}
-			newRecipes.sortOn(["baseGem", "value"]);
+			newRecipes.sortOn(["baseGem", "value"], [0, Array.NUMERIC]);
 			this.recipes = newRecipes;
 		}
 
