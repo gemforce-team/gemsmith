@@ -310,20 +310,7 @@ package Gemsmith
 			
 			if (vX > GemsmithMod.FIELD_WIDTH - 1 || vX < 0 || vY > GemsmithMod.FIELD_HEIGHT - 1 || vY < 0)
 				return null;
-			var grid: Object = GV.ingameCore.buildingRegPtMatrix;
-			var building:Object = grid[vY][vX];
-			if (vX > 0)
-			{
-				building ||= grid[vY][vX - 1];
-				if (vY > 0)
-				building ||= grid[vY - 1][vX - 1] || grid[vY - 1][vX];
-			}
-			if (vY > 0)
-			{
-				building ||= grid[vY - 1][vX];
-				if (vX > 0)
-				building ||= grid[vY - 1][vX - 1] || grid[vY][vX - 1];
-			}
+			var building:Object = GV.ingameCore.buildingAreaMatrix[vY][vX];
 			if (building != null && building.hasOwnProperty("insertedGem"))
 				return building;
 			else
