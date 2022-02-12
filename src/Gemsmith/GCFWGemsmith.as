@@ -390,6 +390,7 @@ package Gemsmith
 					var res:Gem = GV.ingameCore.spellCaster.combineGems(virtualInv[instr.left], virtualInv[instr.right], true, true, false);
 					res.kills.s(Math.round(res.kills.g() / 2));
 					res.hits.s(Math.round(res.hits.g() / 2));
+					res.manaLeeched /= 2;
 					virtualInv[instrindex] = (res);
 					
 					// Now we fill in the mana expenditure values
