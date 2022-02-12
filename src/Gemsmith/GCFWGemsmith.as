@@ -96,7 +96,7 @@ package Gemsmith
 			{
 				this.currentRecipeIndex = 0;
 			}
-			newRecipes.sortOn(["baseGem", "value"]);
+			newRecipes.sortOn(["baseGem", "value"], [0, Array.NUMERIC]);
 			this.recipes = newRecipes;
 		}
 
@@ -310,20 +310,7 @@ package Gemsmith
 			
 			if (vX > GemsmithMod.FIELD_WIDTH - 1 || vX < 0 || vY > GemsmithMod.FIELD_HEIGHT - 1 || vY < 0)
 				return null;
-			var grid: Object = GV.ingameCore.buildingRegPtMatrix;
-			var building:Object = grid[vY][vX];
-			if (vX > 0)
-			{
-				building ||= grid[vY][vX - 1];
-				if (vY > 0)
-				building ||= grid[vY - 1][vX - 1] || grid[vY - 1][vX];
-			}
-			if (vY > 0)
-			{
-				building ||= grid[vY - 1][vX];
-				if (vX > 0)
-				building ||= grid[vY - 1][vX - 1] || grid[vY][vX - 1];
-			}
+			var building:Object = GV.ingameCore.buildingAreaMatrix[vY][vX];
 			if (building != null && building.hasOwnProperty("insertedGem"))
 				return building;
 			else
@@ -403,6 +390,7 @@ package Gemsmith
 					var res:Gem = GV.ingameCore.spellCaster.combineGems(virtualInv[instr.left], virtualInv[instr.right], true, true, false);
 					res.kills.s(Math.round(res.kills.g() / 2));
 					res.hits.s(Math.round(res.hits.g() / 2));
+					res.manaLeeched /= 2;
 					virtualInv[instrindex] = (res);
 					
 					// Now we fill in the mana expenditure values
@@ -446,19 +434,6 @@ package Gemsmith
 		// Also handles gem bitmap creation
 		public function virtualCombineGem(recipe: Recipe, gem:Gem): Gem
 		{
-			if (recipe.type == "Combine")
-			{
-				// Remember the modified range
-				var vRangeRatio:Number = NaN;
-				var vRange4:Number = NaN;
-				var vRange5:Number = NaN;
-				vRangeRatio = gem.rangeRatio.g();
-				vRange4 = gem.sd4_IntensityMod.range.g();
-				vRange5 = gem.sd5_EnhancedOrTrapOrLantern.range.g();
-				gem.rangeRatio.s(1);
-				gem.sd4_IntensityMod.range.s(vRange4 / vRangeRatio * gem.rangeRatio.g());
-				gem.sd5_EnhancedOrTrapOrLantern.range.s(vRange5 / vRangeRatio * gem.rangeRatio.g());
-			}
 
 			// In case of failure we just return the source gem
 			var resultingGem:Gem = performCombineFromRecipe(recipe, gem) || gem;
@@ -466,16 +441,6 @@ package Gemsmith
 			{
 				resultingGem.recalculateSds();
 				GV.gemBitmapCreator.giveGemBitmaps(resultingGem);
-			}
-
-			if (recipe.type == "Combine")
-			{
-				// Restore the modified range
-				vRange4 = resultingGem.sd4_IntensityMod.range.g();
-				vRange5 = resultingGem.sd5_EnhancedOrTrapOrLantern.range.g();
-				resultingGem.rangeRatio.s(vRangeRatio);
-				resultingGem.sd4_IntensityMod.range.s(vRange4 * resultingGem.rangeRatio.g());
-				resultingGem.sd5_EnhancedOrTrapOrLantern.range.s(vRange5 * resultingGem.rangeRatio.g());
 			}
 
 			return resultingGem;
