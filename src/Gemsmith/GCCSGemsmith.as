@@ -61,6 +61,9 @@ package Gemsmith
 			
 			if(settings.retrieveBoolean("Check for updates"))
 				checkForUpdates();
+				
+			GemsmithMod.logger.log("Gemsmith", "Parsing recipes!");
+			formRecipeList();
 			
 			GemsmithMod.logger.log("Gemsmith", "Gemsmith initialized!");
 		}
@@ -724,7 +727,7 @@ package Gemsmith
 		{
 			GemsmithMod.bezel.addEventListener(EventTypes.INGAME_GEM_INFO_PANEL_FORMED, eh_ingameGemInfoPanelFormed);
 			GemsmithMod.bezel.addEventListener(EventTypes.INGAME_KEY_DOWN, eh_interceptKeyboardEvent);
-			GemsmithMod.bezel.addEventListener(EventTypes.INGAME_NEW_SCENE, formRecipeList);
+			//GemsmithMod.bezel.addEventListener(EventTypes.INGAME_NEW_SCENE, formRecipeList);
 			GemsmithMod.gameObjects.main.stage.addEventListener(MouseEvent.MOUSE_WHEEL, eh_ingameWheelScrolled, true, 10);
 			GemsmithMod.gameObjects.main.stage.addEventListener(KeyboardEvent.KEY_DOWN, eh_keyboadKeyDown, true);
 			GemsmithMod.gameObjects.main.stage.addEventListener(KeyboardEvent.KEY_UP, eh_keyboadKeyUp, true);
@@ -734,7 +737,7 @@ package Gemsmith
 		{
 			GemsmithMod.bezel.removeEventListener(EventTypes.INGAME_GEM_INFO_PANEL_FORMED, eh_ingameGemInfoPanelFormed);
 			GemsmithMod.bezel.removeEventListener(EventTypes.INGAME_KEY_DOWN, eh_interceptKeyboardEvent);
-			GemsmithMod.bezel.removeEventListener(EventTypes.INGAME_NEW_SCENE, formRecipeList);
+			//GemsmithMod.bezel.removeEventListener(EventTypes.INGAME_NEW_SCENE, formRecipeList);
 			GemsmithMod.gameObjects.main.stage.removeEventListener(MouseEvent.MOUSE_WHEEL, eh_ingameWheelScrolled, true);
 			GemsmithMod.gameObjects.main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, eh_keyboadKeyDown, true);
 			GemsmithMod.gameObjects.main.stage.removeEventListener(KeyboardEvent.KEY_UP, eh_keyboadKeyUp, true);
